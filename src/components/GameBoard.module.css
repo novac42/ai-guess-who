@@ -1,7 +1,7 @@
 .boardContainer {
 	container-name: board;
 	container-type: inline-size; /* Define as a container */
-	padding: var(--space-3);
+	padding: var(--space-2);
 	border: 1px solid var(--color-border-glass);
 	border-radius: var(--border-radius-sm);
 	backdrop-filter: blur(var(--blur-glass));
@@ -11,20 +11,6 @@
 
 .boardGrid {
 	display: grid;
-	grid-template-columns: repeat(1, minmax(0, 1fr));
-	gap: var(--space-2);
-}
-
-/* Use container queries to adjust columns based on the board's own width */
-@container board (min-width: 380px) {
-	.boardGrid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--space-3);
-	}
-}
-
-@container board (min-width: 760px) {
-	.boardGrid {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: var(--space-1);
 }
