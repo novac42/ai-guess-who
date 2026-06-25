@@ -24,15 +24,11 @@ export const useAIModel = () => {
         });
     }, []);
 
-    // Load blobs for default characters once the AI is ready
+    // Load text-only default characters once the AI is ready.
     useEffect(() => {
-        const loadData = async () => {
-            if (aiStatus === AIStatus.READY && !defaultCharsWithBlobs) {
-                const charactersWithBlobs = await builtInAIService.loadBlobsForDefaultCharacters(DEFAULT_CHARACTERS);
-                setDefaultCharsWithBlobs(charactersWithBlobs);
-            }
-        };
-        loadData();
+        if (aiStatus === AIStatus.READY && !defaultCharsWithBlobs) {
+            setDefaultCharsWithBlobs(DEFAULT_CHARACTERS);
+        }
     }, [aiStatus, defaultCharsWithBlobs]);
 
     const reinitializeAI = () => {
