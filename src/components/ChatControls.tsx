@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useSpeechToText } from "../hooks/useSpeechToText";
 import { GameState, type Message } from "../types";
 import styles from "./ChatControls.module.css";
-import { MicIcon, SendIcon, StopIcon } from "./icons";
+import { SendIcon } from "./icons";
 
 export type ChatControlsProps = {
     /** The list of messages to display in the chat log. */
@@ -23,7 +22,7 @@ export type ChatControlsProps = {
 
 /**
  * A component that handles the chat interface, including message display,
- * text input, voice input, and action buttons.
+ * text input, and action buttons.
  */
 function ChatControls({
     messages,
@@ -36,17 +35,6 @@ function ChatControls({
 }: ChatControlsProps) {
     const [inputValue, setInputValue] = useState("");
     const chatLogRef = useRef<HTMLDivElement>(null);
-
-    const [micStatus, setMicStatus] = useState<"idle" | "recording" | "transcribing" | "error">("idle");
-
-    const { isRecording, toggleRecording } = useSpeechToText({
-        onTranscription: (text) => {
-            setInputValue(text);
-        },
-        onStateChange: (state) => {
-            setMicStatus(state);
-        },
-    });
 
     // Auto-scroll to the latest message
     useEffect(() => {
@@ -89,15 +77,13 @@ function ChatControls({
     const showConfirmAnalysisButton = gameState === GameState.PLAYER_REVIEWING_AI_ANALYSIS;
     const showAnswerButtons = gameState === GameState.AI_TURN_WAITING_FOR_ANSWER;
 
-    const isTranscribing = micStatus === "transcribing";
-
     return (
         <div className={styles.controlsContainer}>
             <div ref={chatLogRef} className={styles.chatLog} aria-live="polite">
                 {messages.map(renderMessage)}
-                {(isLoading || isTranscribing) && (
+                {isLoading && (
                     <div className={`${styles.message} ${styles.systemMessage} ${styles.loadingMessage}`}>
-                        {isTranscribing ? "Transcribing..." : "Processing..."}
+                        处理中...
                     </div>
                 )}
             </div>
@@ -109,25 +95,16 @@ function ChatControls({
                             type="text"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            placeholder="Ask a question..."
+                            placeholder="输入一个能用“是/否”回答的问题..."
                             className={styles.textInput}
-                            disabled={isLoading || isRecording}
-                            aria-label="Your question"
-                        />
-                        <button
-                            type="button"
-                            onClick={toggleRecording}
-                            className={`${styles.iconButton} ${isRecording ? styles.micRecording : styles.micIdle}`}
-                            aria-label={isRecording ? "Stop recording" : "Ask with voice"}
                             disabled={isLoading}
-                        >
-                            {isRecording ? <StopIcon /> : <MicIcon />}
-                        </button>
+                            aria-label="你的问题"
+                        />
                         <button
                             type="submit"
                             className={`${styles.iconButton} ${styles.sendButton}`}
-                            disabled={isLoading || !inputValue || isRecording}
-                            aria-label="Send question"
+                            disabled={isLoading || !inputValue}
+                            aria-label="发送问题"
                         >
                             <SendIcon />
                         </button>
@@ -140,7 +117,7 @@ function ChatControls({
                         className={`${styles.actionButton} ${styles.endTurnButton}`}
                         disabled={isLoading}
                     >
-                        End Turn
+                        结束回合
                     </button>
                 )}
 
@@ -150,7 +127,7 @@ function ChatControls({
                         className={`${styles.actionButton} ${styles.continueButton}`}
                         disabled={isLoading}
                     >
-                        Continue
+                        继续回答
                     </button>
                 )}
 
@@ -161,14 +138,14 @@ function ChatControls({
                             className={`${styles.actionButton} ${styles.yesButton}`}
                             disabled={isLoading}
                         >
-                            Yes
+                            是
                         </button>
                         <button
                             onClick={() => onPlayerAnswer("No")}
                             className={`${styles.actionButton} ${styles.noButton}`}
                             disabled={isLoading}
                         >
-                            No
+                            否
                         </button>
                     </div>
                 )}

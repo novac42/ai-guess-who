@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import styles from "./App.module.css";
 import ChatControls from "./components/ChatControls";
-import CustomGameSetup from "./components/CustomGameSetup";
 import EndGameDialog from "./components/EndGameDialog";
 import GameBoard from "./components/GameBoard";
 import GameSetup from "./components/GameSetup";
@@ -29,19 +28,15 @@ function App() {
         aiStatusMessage,
         downloadProgress,
         defaultCharsWithBlobs,
-        hasCustomSet,
         lastAIAnalysis,
         isReviewModeEnabled,
 
         // State Setters
-        setGameState,
         setPlayerEliminatedChars,
 
         // Handlers
-        startGame,
         resetGame,
         handleStartDefault,
-        handleStartWithCustomSet,
         handlePlayerQuestion,
         handleEndTurn,
         handlePlayerAnswer,
@@ -61,21 +56,16 @@ function App() {
                 return (
                     <GameSetup
                         onStartDefault={handleStartDefault}
-                        onStartCustom={() => setGameState(GameState.CUSTOM_SETUP)}
-                        onStartWithCustomSet={handleStartWithCustomSet}
                         aiStatus={aiStatus}
                         aiStatusMessage={aiStatusMessage}
                         downloadProgress={downloadProgress}
                         hasDefaultChars={!!defaultCharsWithBlobs}
-                        hasCustomSet={hasCustomSet}
                         isLoading={isLoading}
                         isReviewModeEnabled={isReviewModeEnabled}
                         onSetReviewMode={handleSetReviewMode}
                         onDownload={handleDownload}
                     />
                 );
-            case GameState.CUSTOM_SETUP:
-                return <CustomGameSetup onStartGame={startGame} onBack={() => setGameState(GameState.SETUP)} />;
             case GameState.GAME_OVER:
             case GameState.PLAYER_TURN_ASKING:
             case GameState.PLAYER_TURN_ELIMINATING:
@@ -85,9 +75,9 @@ function App() {
                 if (!playerSecret || !aiSecret || activeCharacters.length === 0) {
                     return (
                         <div className={styles.errorContainer}>
-                            Error: Game not initialized correctly.
+                            游戏没有正确初始化。
                             <button onClick={resetGame} className={styles.restartButton}>
-                                Restart
+                                重新开始
                             </button>
                         </div>
                     );
@@ -103,11 +93,11 @@ function App() {
                                     }`}
                                 >
                                     <div className={styles.sidePanel}>
-                                        <h2 className={styles.sidePanelTitlePlayer}>Your Card</h2>
+                                        <h2 className={styles.sidePanelTitlePlayer}>你的秘密人物</h2>
                                         <SecretCard character={playerSecret} />
                                     </div>
                                     <div className={styles.sidePanel}>
-                                        <h2 className={styles.sidePanelTitleAi}>AI's Card</h2>
+                                        <h2 className={styles.sidePanelTitleAi}>AI 的秘密人物</h2>
                                         <SecretCard character={aiSecret} revealed={gameState === GameState.GAME_OVER} />
                                     </div>
                                 </div>
@@ -115,15 +105,15 @@ function App() {
                                 <button
                                     className={styles.secretPanelToggle}
                                     onClick={() => setSecretPanelVisible((v) => !v)}
-                                    aria-label={isSecretPanelVisible ? "Hide secret cards" : "Show secret cards"}
+                                    aria-label={isSecretPanelVisible ? "隐藏秘密人物" : "显示秘密人物"}
                                 >
                                     {isSecretPanelVisible ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                                    <span>{isSecretPanelVisible ? "Hide Cards" : "Show Cards"}</span>
+                                    <span>{isSecretPanelVisible ? "隐藏秘密人物" : "显示秘密人物"}</span>
                                 </button>
 
                                 <div className={styles.boardArea}>
                                     <div className={styles.boardWrapper}>
-                                        <h2 className={styles.boardTitle}>AI's Board</h2>
+                                        <h2 className={styles.boardTitle}>AI 的候选列表</h2>
                                         <GameBoard
                                             characters={activeCharacters}
                                             eliminatedChars={aiEliminatedChars}
@@ -134,11 +124,11 @@ function App() {
                                             }
                                         />
                                         <p className={styles.boardSubtext}>
-                                            The AI eliminates characters from its own board.
+                                            AI 会根据你的回答排除自己的候选人物。
                                         </p>
                                     </div>
                                     <div className={styles.boardWrapper}>
-                                        <h2 className={styles.boardTitle}>Your Board</h2>
+                                        <h2 className={styles.boardTitle}>你的候选列表</h2>
                                         <GameBoard
                                             characters={activeCharacters}
                                             eliminatedChars={playerEliminatedChars}
@@ -156,7 +146,7 @@ function App() {
                                                 }
                                             }}
                                         />
-                                        <p className={styles.boardSubtext}>Click on cards to eliminate them.</p>
+                                        <p className={styles.boardSubtext}>点击人物卡来排除或恢复候选。</p>
                                     </div>
                                 </div>
                             </div>

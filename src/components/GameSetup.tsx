@@ -1,7 +1,7 @@
 import React, { type ComponentPropsWithoutRef, useEffect, useRef, useState } from "react";
 import { AIStatus } from "../types";
 import styles from "./GameSetup.module.css";
-import { CameraIcon, CheckCircleIcon, DownloadIcon, PlayAgainIcon, SpinnerIcon, UsersIcon } from "./icons";
+import { CheckCircleIcon, DownloadIcon, SpinnerIcon, UsersIcon } from "./icons";
 
 type SetupOptionCardProps = ComponentPropsWithoutRef<"button"> & {
     title: string;
@@ -22,20 +22,14 @@ function SetupOptionCard({ title, description, icon, ...props }: SetupOptionCard
 export type GameSetupProps = {
     /** Callback to start the game with default characters. */
     onStartDefault: () => void;
-    /** Callback to navigate to the custom game creation screen. */
-    onStartCustom: () => void;
-    /** Callback to start with a previously saved custom character set. */
-    onStartWithCustomSet: () => void;
     /** The current status of the AI model. */
     aiStatus: AIStatus;
     /** A message describing the current AI status. */
     aiStatusMessage: string;
     /** The download progress of the AI model (0-100). */
     downloadProgress: number | null;
-    /** Whether the default character data (with blobs) has been loaded. */
+    /** Whether the default character data has been loaded. */
     hasDefaultChars: boolean;
-    /** Whether a custom character set has been saved by the user. */
-    hasCustomSet: boolean;
     /** Whether the app is in a general loading state. */
     isLoading: boolean;
     /** Whether the AI analysis review mode is enabled. */
@@ -52,13 +46,10 @@ export type GameSetupProps = {
  */
 function GameSetup({
     onStartDefault,
-    onStartCustom,
-    onStartWithCustomSet,
     aiStatus,
     aiStatusMessage,
     downloadProgress,
     hasDefaultChars,
-    hasCustomSet,
     isLoading,
     isReviewModeEnabled,
     onSetReviewMode,
@@ -66,7 +57,6 @@ function GameSetup({
 }: GameSetupProps) {
     const isReady = aiStatus === AIStatus.READY;
     const defaultGameDisabled = !isReady || !hasDefaultChars || isLoading;
-    const customGameDisabled = !isReady || isLoading;
 
     const [showComplete, setShowComplete] = useState(false);
     const prevAiStatus = useRef(aiStatus);
@@ -85,7 +75,7 @@ function GameSetup({
             return (
                 <div className={`${styles.statusContainer} ${styles.statusComplete}`} role="status">
                     <CheckCircleIcon />
-                    <p className={styles.subtitle}>AI Model Ready!</p>
+                    <p className={styles.subtitle}>本地 AI 模型已就绪</p>
                 </div>
             );
         }
@@ -97,7 +87,7 @@ function GameSetup({
                         <p className={`${styles.subtitle} ${styles.downloadPrompt}`}>{aiStatusMessage}</p>
                         <button onClick={onDownload} className={styles.downloadButton}>
                             <DownloadIcon />
-                            Download AI Model
+                            下载本地 AI 模型
                         </button>
                     </div>
                 );
@@ -111,7 +101,7 @@ function GameSetup({
                             <div className={styles.progressWrapper}>
                                 <div
                                     className={styles.progressBarContainer}
-                                    aria-label={`Downloading AI Model: ${Math.floor(downloadProgress)}%`}
+                                    aria-label={`正在下载本地 AI 模型：${Math.floor(downloadProgress)}%`}
                                     aria-valuenow={downloadProgress}
                                     aria-valuemin={0}
                                     aria-valuemax={100}
@@ -134,7 +124,7 @@ function GameSetup({
                 return !hasDefaultChars ? (
                     <div className={styles.statusContainer} role="status">
                         <SpinnerIcon className={styles.spinner} />
-                        <p className={styles.subtitle}>Loading character data...</p>
+                        <p className={styles.subtitle}>正在加载人物资料...</p>
                     </div>
                 ) : null;
             default:
@@ -145,40 +135,24 @@ function GameSetup({
     return (
         <div className={styles.setupContainer}>
             <div className={styles.titleContainer}>
-                <h1 className={styles.mainTitle}>AI Guess Who?</h1>
-                <p className={styles.subtitle}>Challenge the AI in the classic guessing game.</p>
+                <h1 className={styles.mainTitle}>AI 猜名人：历史人物版</h1>
+                <p className={styles.subtitle}>用中文问题挑战本地 AI，猜出对方的历史人物。</p>
             </div>
 
             {renderStatus()}
 
-            <div className={`${styles.optionsGrid} ${hasCustomSet ? styles.hasThree : ""}`}>
+            <div className={styles.optionsGrid}>
                 <SetupOptionCard
-                    title="Play Default Game"
-                    description="Jump right in with a random set of 5 characters."
+                    title="开始游戏"
+                    description="从中外历史人物牌库中随机抽取 12 位候选人物。"
                     icon={<UsersIcon />}
                     onClick={onStartDefault}
                     disabled={defaultGameDisabled}
                 />
-                {hasCustomSet && (
-                    <SetupOptionCard
-                        title="Play With Custom Set"
-                        description="Use the last set of characters you created."
-                        icon={<PlayAgainIcon />}
-                        onClick={onStartWithCustomSet}
-                        disabled={customGameDisabled}
-                    />
-                )}
-                <SetupOptionCard
-                    title="Create Custom Game"
-                    description="Use your camera to create your own set of 5 characters."
-                    icon={<CameraIcon />}
-                    onClick={onStartCustom}
-                    disabled={customGameDisabled}
-                />
             </div>
 
             <div className={styles.settingsContainer}>
-                <h3 className={styles.settingsTitle}>Game Options</h3>
+                <h3 className={styles.settingsTitle}>游戏选项</h3>
                 <label className={styles.settingLabel}>
                     <input
                         type="checkbox"
@@ -187,11 +161,10 @@ function GameSetup({
                         onChange={(e) => onSetReviewMode(e.target.checked)}
                         disabled={!isReady}
                     />
-                    Enable AI Analysis Review
+                    显示 AI 分析过程
                 </label>
                 <p className={styles.settingDescription}>
-                    See how the AI analyzes its board before you answer. This makes the game more transparent but adds
-                    an extra step to the AI's turn.
+                    在回答 AI 的问题前查看它如何判断候选人物。这个选项会让流程多一步，但更容易检查 AI 是否推理正确。
                 </p>
             </div>
         </div>
