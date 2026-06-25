@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import * as dbService from "../services/dbService";
 import { AIStatus, GameState, type Character } from "../types";
 import { useAIActions } from "./useAIActions";
 import { useAIModel } from "./useAIModel";
@@ -48,7 +47,7 @@ export const useGameLogic = () => {
         shuffleArray,
     } = useGameState();
 
-    const { isReviewModeEnabled, hasCustomSet, setHasCustomSet, handleSetReviewMode } = useGameSettings(gameState);
+    const { isReviewModeEnabled, handleSetReviewMode } = useGameSettings();
 
     const {
         aiRemainingChars,
@@ -92,7 +91,7 @@ export const useGameLogic = () => {
             } catch (error) {
                 console.error("Game start failed:", error);
                 setAiStatus(AIStatus.ERROR);
-                setAiStatusMessage(error instanceof Error ? error.message : "Failed to start game session.");
+                setAiStatusMessage(error instanceof Error ? error.message : "启动游戏会话失败。");
                 setGameState(GameState.SETUP);
                 throw error;
             }
@@ -104,7 +103,7 @@ export const useGameLogic = () => {
         if (!defaultCharsWithBlobs) return;
         setIsLoading(true);
         try {
-            const selectedCharacters = shuffleArray(defaultCharsWithBlobs).slice(0, 5);
+            const selectedCharacters = shuffleArray(defaultCharsWithBlobs).slice(0, 12);
             await startGame(selectedCharacters);
         } catch (e) {
             // Error is handled by startGame
@@ -112,27 +111,6 @@ export const useGameLogic = () => {
             setIsLoading(false);
         }
     }, [defaultCharsWithBlobs, startGame, setIsLoading, shuffleArray]);
-
-    const handleStartWithCustomSet = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const customChars = await dbService.loadCustomCharacters();
-            if (customChars && customChars.length > 0) {
-                await startGame(customChars);
-            } else {
-                setHasCustomSet(false);
-                addMessage({ sender: "SYSTEM", text: "Could not load custom character set." });
-            }
-        } catch (error) {
-            console.error("Failed to load or start custom game:", error);
-            // Error handling is inside startGame, this catch is for dbService errors
-            if (!(error instanceof Error && error.message.includes("AI"))) {
-                addMessage({ sender: "SYSTEM", text: "Error loading custom characters." });
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    }, [startGame, setIsLoading, setHasCustomSet, addMessage]);
 
     const resetGame = useCallback(() => {
         coreResetGame(setPlayerEliminatedChars, setLastAIAnalysis, setIsAIFinalGuess, setDownloadProgress);
@@ -169,7 +147,6 @@ export const useGameLogic = () => {
         aiStatusMessage,
         downloadProgress,
         defaultCharsWithBlobs,
-        hasCustomSet,
         lastAIAnalysis,
         isReviewModeEnabled,
 
@@ -181,7 +158,6 @@ export const useGameLogic = () => {
         startGame,
         resetGame,
         handleStartDefault,
-        handleStartWithCustomSet,
         handlePlayerQuestion,
         handleEndTurn,
         handlePlayerAnswer,

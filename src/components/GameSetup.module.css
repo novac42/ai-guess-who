@@ -44,7 +44,7 @@
 	width: 100%;
 	max-width: 600px;
 	min-height: 80px;
-    margin-block: var(--space-2) var(--space-8);
+	margin-block: var(--space-2) var(--space-8);
 	gap: var(--space-4);
 }
 
@@ -260,5 +260,5 @@
 .downloadButton svg {
 	width: 24px;
 	height: 24px;
-    color: inherit;
+	color: inherit;
 }

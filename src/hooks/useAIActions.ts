@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import * as builtInAIService from "../services/builtInAIService.ts";
 import { GameState, type Character, type EliminationAnalysisResult, type Message } from "../types";
 
-const FINAL_GUESS_REGEX = /^(?:is it|is the person|is the character|is your? character)\s+(.*?)\??$/i;
+const FINAL_GUESS_REGEX = /你的秘密人物是(.+?)吗？?$/;
 
 type UseAIActionsProps = {
     gameState: GameState;
@@ -43,7 +43,7 @@ export const useAIActions = ({
             setIsAIFinalGuess(false);
 
             if (aiRemainingChars.length === 1) {
-                const guess = `Is your character ${aiRemainingChars[0].name}?`;
+                const guess = `你的秘密人物是${aiRemainingChars[0].name}吗？`;
                 setLastAIQuestion(guess);
                 setIsAIFinalGuess(true);
                 addMessage({ sender: "AI", text: guess });
@@ -54,7 +54,7 @@ export const useAIActions = ({
 
             if (aiRemainingChars.length === 0) {
                 setWinner("PLAYER");
-                setWinReason("The AI ran out of characters to guess from!");
+                setWinReason("AI 已经没有可猜的候选人物了。");
                 setGameState(GameState.GAME_OVER);
                 setIsLoading(false);
                 return;
@@ -75,8 +75,7 @@ export const useAIActions = ({
 
                     const positiveFeatures = analysis.filter((res) => res.has_feature).length;
                     if (positiveFeatures === 0 || positiveFeatures === analysis.length) {
-                        retryReason =
-                            "The last question you asked was invalid because it did not eliminate any characters. You must ask a question that splits the remaining characters.";
+                        retryReason = "上一个问题无效，因为它不能排除任何候选人物。你必须提出能区分候选人物的问题。";
                         lastFailedQuestion = question;
                         throw new Error("AI generated a non-discriminatory question.");
                     }
@@ -88,11 +87,11 @@ export const useAIActions = ({
                     if (isReviewModeEnabled) {
                         addMessage({
                             sender: "SYSTEM",
-                            text: "Here is how the AI analyzed the remaining characters. Review its work, then click 'Continue' to provide your answer.",
+                            text: "下面是 AI 对剩余候选人物的分析。检查后点击“继续回答”。",
                         });
                         setGameState(GameState.PLAYER_REVIEWING_AI_ANALYSIS);
                     } else {
-                        addMessage({ sender: "SYSTEM", text: "It's your turn to answer." });
+                        addMessage({ sender: "SYSTEM", text: "轮到你回答 AI 的问题。" });
                         setGameState(GameState.AI_TURN_WAITING_FOR_ANSWER);
                     }
 
@@ -105,7 +104,7 @@ export const useAIActions = ({
                     }
                     if (attempt === MAX_AI_RETRIES) {
                         console.error("AI failed to generate a valid question after multiple retries.");
-                        addMessage({ sender: "SYSTEM", text: "The AI is having trouble thinking. Your turn!" });
+                        addMessage({ sender: "SYSTEM", text: "AI 暂时想不出合适的问题。轮到你提问。" });
                         setGameState(GameState.PLAYER_TURN_ASKING);
                         setIsLoading(false);
                         return;
@@ -134,7 +133,7 @@ export const useAIActions = ({
         async (answer: "Yes" | "No") => {
             if (!lastAIQuestion || !playerSecret) return;
             setIsLoading(true);
-            addMessage({ sender: "PLAYER", text: answer });
+            addMessage({ sender: "PLAYER", text: answer === "Yes" ? "是" : "否" });
 
             if (isAIFinalGuess) {
                 const guessMatch = lastAIQuestion.trim().match(FINAL_GUESS_REGEX);
@@ -143,15 +142,13 @@ export const useAIActions = ({
                     const isCorrectGuess = guessedName.toLowerCase() === playerSecret.name.toLowerCase();
                     if (isCorrectGuess && answer === "Yes") {
                         setWinner("AI");
-                        setWinReason(`It correctly guessed your character was ${playerSecret?.name}.`);
+                        setWinReason(`AI 正确猜出了你的秘密人物：${playerSecret?.name}。`);
                     } else if (!isCorrectGuess && answer === "No") {
                         setWinner("PLAYER");
-                        setWinReason(`The AI guessed ${guessedName} incorrectly! You win!`);
+                        setWinReason(`AI 猜测${guessedName}错误，你赢了。`);
                     } else {
                         setWinner("AI");
-                        setWinReason(
-                            `There was a mismatch in the final guess. Your card was ${playerSecret?.name}. The AI wins.`,
-                        );
+                        setWinReason(`最终猜测的回答不一致。你的秘密人物是${playerSecret?.name}，本局判定 AI 获胜。`);
                     }
                     setGameState(GameState.GAME_OVER);
                     setIsLoading(false);
@@ -175,7 +172,7 @@ export const useAIActions = ({
                 console.warn("AI logic would have eliminated all characters. Preventing this action.");
                 addMessage({
                     sender: "SYSTEM",
-                    text: "The AI got confused and almost eliminated everyone! No one was eliminated.",
+                    text: "AI 的分析会排除所有候选人物，系统已阻止这次排除。",
                 });
             } else {
                 const eliminatedNames = aiRemainingChars
@@ -183,9 +180,9 @@ export const useAIActions = ({
                     .map((c) => c.name)
                     .join(", ");
                 if (eliminatedNames) {
-                    addMessage({ sender: "SYSTEM", text: `AI eliminated: ${eliminatedNames}.` });
+                    addMessage({ sender: "SYSTEM", text: `AI 排除了：${eliminatedNames}。` });
                 } else {
-                    addMessage({ sender: "SYSTEM", text: `AI did not eliminate anyone based on that answer.` });
+                    addMessage({ sender: "SYSTEM", text: `根据这个回答，AI 没有排除任何人物。` });
                 }
 
                 const newRemainingChars = aiRemainingChars.filter((c) => !eliminatedIds.has(c.character_id));
@@ -193,7 +190,7 @@ export const useAIActions = ({
 
                 if (newRemainingChars.length === 0) {
                     setWinner("PLAYER");
-                    setWinReason(`The AI eliminated all its characters by mistake! You win!`);
+                    setWinReason(`AI 错误排除了所有候选人物，你赢了。`);
                     setGameState(GameState.GAME_OVER);
                     setIsLoading(false);
                     return;

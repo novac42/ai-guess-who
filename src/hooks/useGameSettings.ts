@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
-import * as dbService from "../services/dbService";
-import { GameState } from "../types";
+import { useCallback, useState } from "react";
 
 const REVIEW_MODE_STORAGE_KEY = "ai-guess-who-review-mode";
 
 /**
- * Manages user-configurable game settings and checks for saved custom data.
+ * Manages user-configurable game settings.
  */
-export const useGameSettings = (gameState: GameState) => {
+export const useGameSettings = () => {
     const [isReviewModeEnabled, setIsReviewModeEnabled] = useState<boolean>(() => {
         try {
             const storedValue = localStorage.getItem(REVIEW_MODE_STORAGE_KEY);
@@ -16,15 +14,6 @@ export const useGameSettings = (gameState: GameState) => {
             return true;
         }
     });
-    const [hasCustomSet, setHasCustomSet] = useState(false);
-
-    // Check for a saved custom game when returning to the setup screen
-    useEffect(() => {
-        if (gameState === GameState.SETUP) {
-            dbService.hasCustomCharacters().then(setHasCustomSet);
-        }
-    }, [gameState]);
-
     const handleSetReviewMode = useCallback((isEnabled: boolean) => {
         setIsReviewModeEnabled(isEnabled);
         try {
@@ -36,8 +25,6 @@ export const useGameSettings = (gameState: GameState) => {
 
     return {
         isReviewModeEnabled,
-        hasCustomSet,
-        setHasCustomSet,
         handleSetReviewMode,
     };
 };

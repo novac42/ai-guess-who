@@ -35,10 +35,6 @@ export const useGameState = () => {
 
     const startGame = useCallback(
         async (characterSet: Character[], setAiRemainingChars: React.Dispatch<React.SetStateAction<Character[]>>) => {
-            if (characterSet.some((c) => !c.imageBlob)) {
-                throw new Error("Missing character image blobs.");
-            }
-
             try {
                 await buildInAIService.startNewGameSession();
             } catch (error) {
@@ -65,7 +61,7 @@ export const useGameState = () => {
             setMessages([
                 {
                     sender: "SYSTEM",
-                    text: `New game started. You drew ${pSecret.name}. It's your turn to ask a question.`,
+                    text: `新游戏开始。你抽到的人物是${pSecret.name}。现在轮到你提问。`,
                 },
             ]);
             setWinner(null);

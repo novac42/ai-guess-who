@@ -1,8 +1,11 @@
 export type Character = {
     character_id: string;
     name: string;
-    image: string; // This will be a URL or a base64 string
-    imageBlob?: Blob; // The actual image data for the AI
+    region: string;
+    era: string;
+    roles: string[];
+    tags: string[];
+    summary: string;
 };
 
 export type Message = {
@@ -12,11 +15,10 @@ export type Message = {
 
 export enum GameState {
     SETUP,
-    CUSTOM_SETUP,
     PLAYER_TURN_ASKING,
     PLAYER_TURN_ELIMINATING,
     AI_TURN,
-    PLAYER_REVIEWING_AI_ANALYSIS, // New state for player to see AI's reasoning
+    PLAYER_REVIEWING_AI_ANALYSIS,
     AI_TURN_WAITING_FOR_ANSWER,
     GAME_OVER,
 }

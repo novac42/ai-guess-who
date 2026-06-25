@@ -1,110 +1,84 @@
 import { type Character } from "../types";
 
+const formatFigure = (character: Character): string =>
+    `${character.name}｜${character.region}｜${character.era}｜${character.roles.join("、")}｜${character.tags.join("、")}｜${character.summary}`;
+
+const formatFigureList = (characters: Character[]): string =>
+    characters
+        .map((character, index) => `${index + 1}. ${character.character_id}｜${formatFigure(character)}`)
+        .join("\n");
+
 /**
- * Provides the system prompt, which defines the AI's core persona, goal, and strategy.
- * This is used to guide the AI's behavior throughout the game.
- * @returns The system prompt string.
+ * Provides the system prompt that defines the AI's strategy for the text-only game.
  */
 export const getSystemPrompt = (): string => {
-    return `You are an expert "Guess Who?" player. Your goal is to win by asking the smartest possible yes/no question to eliminate the maximum number of characters. A good starting question often relates to gender, as it can split the characters in half.`;
+    return `你是中文桌游《AI 猜名人：历史人物版》里的 AI 玩家。你的目标是通过聪明的“是/否”问题缩小候选历史人物范围。你只能依据给定的人物文字资料判断，不能依赖外部知识、图片、声音或外貌信息。好的问题应尽量把候选人物分成两组，例如地区、时代、身份、领域、关键词或简介中的明确事实。`;
 };
 
 /**
  * Generates the prompt for the AI to create a strategic question and provide its own
- * analysis of the remaining characters in a single, consistent step.
- * @param characters The list of remaining characters for the AI to consider.
- * @param retryReason An optional string explaining why a previous attempt failed.
- * @param lastFailedQuestion The specific question that failed on the previous attempt.
- * @returns The turn-specific prompt string for generating a question and analysis.
+ * analysis of the remaining figures in a single, consistent step.
  */
 export const getAIQuestionAndAnalysisPrompt = (
     characters: Character[],
     retryReason?: string,
     lastFailedQuestion?: string,
 ): string => {
-    const characterData = characters.map((c) => ({ id: c.character_id, name: c.name }));
-
     const failedQuestionInstruction = lastFailedQuestion
-        ? `The specific question that failed was: "${lastFailedQuestion}". Do not ask this question again or any minor variation of it. The visual feature you based this question on is invalid. You must choose a completely different visual feature.`
+        ? `上一次失败的问题是：“${lastFailedQuestion}”。不要再次提出这个问题，也不要提出只有轻微改写的版本。`
         : "";
 
-    let retryInstruction = "";
-    if (retryReason) {
-        // Handle stalemates when few characters are left
-        if (characters.length <= 3) {
-            retryInstruction = `
-**IMPORTANT - STALEMATE DETECTED:**
-Your last attempt was unsuccessful because the question did not split the remaining characters. This is a common stalemate when characters are very similar. Your strategy MUST change.
-**Instead of a broad feature, you must ask about a more specific, unique, or combined visual feature to find a difference.**
-*   **Look closer at the images.** Find a single detail that separates at least one character from the others.
-*   **Good Example of being specific:** Instead of asking "Does your character wear a hat?" (if both do), ask "Is your character wearing a *baseball cap*?" (if one has a cap and the other has a different type of hat).
-*   **Good Example of finding a unique identifier:** "Is your character holding something in their hands?"
-*   **Bad Example (still too broad):** "Does your character have hair?"
+    const retryInstruction = retryReason
+        ? `
+重要：上一次尝试失败。原因：${retryReason}
 ${failedQuestionInstruction}
-Analyze the characters again from scratch. Find a specific, distinguishing detail and base your new question on that.`;
-        } else {
-            // Standard retry logic for larger groups of characters
-            retryInstruction = `
-**IMPORTANT - PREVIOUS ATTEMPT FAILED:**
-Your last attempt was unsuccessful. Reason: "${retryReason}".
-${failedQuestionInstruction}
-This is a critical mistake. You MUST choose a DIFFERENT feature for your question this time. Analyze the characters again from scratch and find a valid feature that splits the group.`;
-        }
-    }
+请重新分析候选人物，选择一个能区分至少一位候选人物、且不会适用于所有人或所有人都不适用的问题。`
+        : "";
 
-    return `You are an expert "Guess Who?" player. It is your turn to ask a question.
+    return `现在轮到你提问。
 
-**ROLES AND KNOWLEDGE:**
-*   You are the AI Player.
-*   I am the Human Player.
-*   I have secretly chosen one character from the full board.
-*   **You DO NOT know which character I have picked.**
-*   The images and character list provided to you below represent **YOUR** list of possible candidates. One of these candidates is my secret character.
-*   Your task is to ask me (the human) a question about **MY** secret character. My answer will help you eliminate candidates from **YOUR** list.
-*   Do not try to guess my character in this step. Just ask a strategic question about a visual feature.
+角色和已知信息：
+- 你是 AI 玩家。
+- 人类玩家秘密选择了候选列表中的一位历史人物。
+- 你不知道人类玩家选的是谁。
+- 下方候选列表就是你当前仍可能的答案。
+- 你需要提出一个中文“是/否”问题，让人类玩家回答后，你可以排除一部分候选人物。
 
 ${retryInstruction}
 
-**Analyze your situation:**
-*   **Your Remaining Candidate Images (${characters.length}):** You have been provided with ${characters.length} images.
-*   **Your Candidate Data:** ${JSON.stringify(characterData)}
+候选人物（共 ${characters.length} 位）：
+${formatFigureList(characters)}
 
-**YOUR TASK: Follow these steps precisely to generate your question and analysis.**
+任务步骤：
+1. 只根据上面的人物资料分析，不要使用外部知识。
+2. 从地区、时代、身份、关键词、简介中找一个明确的二分特征。
+3. 选择最能接近平均切分候选人物的问题。
+4. 问题必须是中文 yes/no 问题，例如“这个人物主要活跃在古代吗？”或“这个人物是科学家吗？”。
+5. 除非只剩 1 位候选人物，否则不要直接问“是不是某某”。
+6. 为每一位候选人物判断该问题的答案是否为“是”，并给出一句中文理由。
+7. 如果某个判断无法从资料中确定，请不要选择这个问题，换一个更明确的问题。
 
-1.  **Examine All Candidates:** Meticulously look at every single one of your remaining character images.
-2.  **Identify Potential Features:** Brainstorm a list of clear, unambiguous, binary visual features you could ask about. Good examples: 'wearing a hat', 'has a beard', 'has blonde hair', 'is wearing glasses', 'is a woman'. Bad, subjective examples: 'looks happy', 'seems old'.
-3.  **Select the BEST Feature:** Choose the single feature from your list that will split your remaining candidates most evenly. This is your best strategic move. A question that eliminates close to half the characters is ideal.
-    *   **CRITICAL RULE:** The feature you choose MUST be present on some characters but not others. A feature that applies to everyone or no one is a wasted turn and is forbidden.
-4.  **Formulate Your Question:** Create a clear, simple yes/no question based on your selected feature. For example: "Does your character have a beard?". Do not ask a question that is already in the chat history.
-5.  **Perform Final, Meticulous Verification (THE MOST IMPORTANT STEP):**
-    This is where mistakes happen. Before you output anything, you must verify your analysis for EVERY SINGLE character against your chosen question. This process MUST be flawless.
-    *   For each character in your list, ask yourself: "Does this specific character's image match the feature in my question (e.g., 'Is this person wearing a hat?')?"
-    *   Based on your visual confirmation, set that character's \`has_feature\` property to \`true\` or \`false\`.
-    *   **CRITICAL: You must also write a short \`reasoning\` string (1-2 sentences) explaining *why* you chose true or false.** For example: "This character has a full beard." or "This character is not wearing a hat." This forces you to double-check your own logic.
-    *   **An incorrect \`has_feature\` value will cause you to make a mistake and lose the game. Double-check your work on every character.**
-6.  **Construct the Final JSON:** Assemble your question and your verified analysis into the final JSON object. Ensure the \`analysis\` array contains an entry for every single remaining character provided in your candidate data.
-
-**Output:**
-Your entire response MUST be a single valid JSON object matching the provided schema. Do not add any other text.`;
+输出要求：
+你的完整回答必须是单个合法 JSON 对象，不要添加 Markdown 或额外解释。JSON 必须匹配：
+{
+  "question": "中文是/否问题",
+  "analysis": [
+    { "id": "候选人物 character_id", "name": "姓名", "has_feature": true, "reasoning": "中文理由" }
+  ]
+}
+analysis 必须包含每一位候选人物，id 必须使用候选列表里的 character_id。`;
 };
 
 /**
  * Generates the prompt for the AI to answer a player's question with a simple boolean.
- * @param character The AI's secret character.
- * @param question The player's question.
- * @returns The prompt string.
  */
 export const getAnswerToPlayerQuestionPrompt = (character: Character, question: string): string => {
-    return `You are the AI player in a "Guess Who?" game. It is the human player's turn to ask a question.
-The human's question is about **your** secret character.
+    return `你是中文桌游《AI 猜名人：历史人物版》里的 AI 玩家。现在人类玩家正在询问你的秘密历史人物。
 
-**Your Secret Character Information:**
-*   **Name:** "${character.name}"
-*   **Image:** The image provided to you IS your secret character, ${character.name}.
+你的秘密人物资料：
+${formatFigure(character)}
 
-**Human's Question:** "${question}"
+人类玩家的问题：${question}
 
-**Your Task:**
-Look at your character's image and answer the human's question with a simple 'Yes' or 'No'.
-Your entire output MUST be a single boolean value: 'true' for Yes, 'false' for No. Do not add any other text.`;
+请只根据这段人物资料判断问题答案。你的完整输出必须是一个 JSON boolean：true 表示“是”，false 表示“否”。不要输出任何其他文字。`;
 };

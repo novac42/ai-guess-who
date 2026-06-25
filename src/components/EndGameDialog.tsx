@@ -18,7 +18,7 @@ function EndGameDialog({ winner, reason, onPlayAgain, className, ...props }: End
     if (!winner) return null;
 
     const isPlayerWin = winner === "PLAYER";
-    const title = isPlayerWin ? "🎉 You Win! 🎉" : "🤖 AI Wins! 🤖";
+    const title = isPlayerWin ? "你赢了" : "AI 赢了";
     const titleClass = isPlayerWin ? styles.winTitle : styles.loseTitle;
 
     return (
@@ -35,7 +35,7 @@ function EndGameDialog({ winner, reason, onPlayAgain, className, ...props }: End
                 </h2>
                 <p className={styles.reason}>{reason}</p>
                 <button onClick={onPlayAgain} className={styles.playAgainButton}>
-                    Play Again
+                    再玩一局
                 </button>
             </div>
         </div>

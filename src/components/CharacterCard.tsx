@@ -15,11 +15,11 @@ export type CharacterCardProps = Omit<ComponentPropsWithoutRef<"div">, "onClick"
 };
 
 /**
- * A card component that displays a character's image and name.
- * It can be flipped to show it has been eliminated.
+ * A card component that displays a historical figure's text profile.
+ * It can be marked as eliminated.
  */
 function CharacterCard({ character, isEliminated, onClick, analysisResult, className, ...props }: CharacterCardProps) {
-    const containerClasses = `${styles.flipContainer} ${isEliminated ? styles.isFlipped : ""}`;
+    const containerClasses = `${styles.card} ${isEliminated ? styles.isEliminated : ""} ${className || ""}`;
 
     const handleClick = useCallback(() => {
         onClick(character.character_id);
@@ -40,9 +40,7 @@ function CharacterCard({ character, isEliminated, onClick, analysisResult, class
 
         const icon = analysisResult ? <CheckIcon /> : <XIcon />;
         const overlayClass = analysisResult ? styles.analysisOverlayPositive : styles.analysisOverlayNegative;
-        const label = analysisResult
-            ? "AI thinks this character HAS the feature."
-            : "AI thinks this character DOES NOT have the feature.";
+        const label = analysisResult ? "AI 判断这个人物符合问题特征。" : "AI 判断这个人物不符合问题特征。";
 
         return (
             <div className={`${styles.analysisOverlay} ${overlayClass}`} aria-label={label}>
@@ -52,31 +50,41 @@ function CharacterCard({ character, isEliminated, onClick, analysisResult, class
     };
 
     return (
-        <div
-            className={`${styles.perspectiveContainer} ${className || ""}`}
+        <article
+            className={containerClasses}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            aria-label={`Character card for ${character.name}. ${isEliminated ? "Eliminated." : "Active."}`}
+            aria-label={`${character.name}人物卡。${isEliminated ? "已排除。" : "候选中。"}`}
             role="button"
             tabIndex={0}
             {...props}
         >
-            <div className={containerClasses}>
-                {/* Front */}
-                <div className={styles.cardFace}>
-                    <img src={character.image} alt={character.name} className={styles.cardImage} />
-                    {renderAnalysisOverlay()}
-                    <div className={styles.cardNameWrapper}>
-                        <p className={styles.cardName}>{character.name}</p>
-                    </div>
-                </div>
-
-                {/* Back */}
-                <div className={`${styles.cardFace} ${styles.cardBack}`}>
-                    <span>?</span>
-                </div>
+            <div className={styles.cardHeader}>
+                <h3 className={styles.cardName}>{character.name}</h3>
+                {renderAnalysisOverlay()}
             </div>
-        </div>
+            <dl className={styles.metaList}>
+                <div>
+                    <dt>地区</dt>
+                    <dd>{character.region}</dd>
+                </div>
+                <div>
+                    <dt>时代</dt>
+                    <dd>{character.era}</dd>
+                </div>
+                <div>
+                    <dt>身份</dt>
+                    <dd>{character.roles.join("、")}</dd>
+                </div>
+            </dl>
+            <div className={styles.tags}>
+                {character.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                ))}
+            </div>
+            <p className={styles.summary}>{character.summary}</p>
+            {isEliminated && <span className={styles.eliminatedBadge}>已排除</span>}
+        </article>
     );
 }
 
