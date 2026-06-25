@@ -9,32 +9,6 @@ import { promiseWithTimeout } from "./timeout";
 const GENERAL_PROMPT_TIMEOUT_MS = 30000;
 
 /**
- * Transcribes an audio blob into a single-sentence question using the AI model.
- * @param audioBlob The audio data to transcribe.
- * @returns A promise that resolves to the transcribed text.
- */
-export async function transcribeAudio(audioBlob: Blob): Promise<string> {
-    const session = await getSession();
-    const prompt = [
-        {
-            role: "user",
-            content: [
-                { type: "text", value: "Transcribe the following audio into a short, one-sentence question." },
-                { type: "audio", value: audioBlob },
-            ],
-        },
-    ];
-    const result = await promiseWithTimeout(session.prompt(prompt), GENERAL_PROMPT_TIMEOUT_MS);
-
-    if (typeof result !== "string") {
-        console.error("Transcription result is not a string:", result);
-        throw new Error("AI transcription failed to return a valid text response.");
-    }
-
-    return result.trim().replace(/"/g, "");
-}
-
-/**
  * Gets a "Yes" or "No" answer from the AI for a player's question about a secret character.
  * @param character The AI's secret character.
  * @param question The player's question.
@@ -42,33 +16,17 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
  */
 export async function getAnswerToPlayerQuestion(character: Character, question: string): Promise<string> {
     const session = await getSession();
-    if (!character.imageBlob) {
-        throw new Error(`Image blob for ${character.name} is missing.`);
-    }
 
     const promptText = getAnswerToPlayerQuestionPrompt(character, question);
-    const prompt = [
-        {
-            role: "user",
-            content: [
-                { type: "image", value: character.imageBlob },
-                { type: "text", value: promptText },
-            ],
-        },
-    ];
-
     const schema = { type: "boolean" };
-    const result = await promiseWithTimeout(
-        session.prompt(prompt, { responseConstraint: schema }),
-        GENERAL_PROMPT_TIMEOUT_MS,
-    );
+    const result = await promiseWithTimeout(session.prompt(promptText, { responseConstraint: schema }), GENERAL_PROMPT_TIMEOUT_MS);
 
     if (typeof result !== "string") {
         console.error("Player question answer is not a string:", result);
         throw new Error("AI failed to return a valid response for the player's question.");
     }
 
-    return JSON.parse(result) ? "Yes" : "No";
+    return JSON.parse(result) ? "是" : "否";
 }
 
 /**
@@ -103,13 +61,6 @@ export async function getAIQuestionAndAnalysis(
     const systemPrompt = getSystemPrompt();
     const turnPrompt = getAIQuestionAndAnalysisPrompt(characters, retryReason, lastFailedQuestion);
     const userContent: any[] = [{ type: "text", value: `${systemPrompt}\n\n${turnPrompt}` }];
-
-    // Add all remaining character images for analysis.
-    for (const char of characters) {
-        if (char.imageBlob) {
-            userContent.push({ type: "image", value: char.imageBlob });
-        }
-    }
     prompt.push({ role: "user", content: userContent });
 
     const schema = {

@@ -4,4 +4,4 @@
  * This file re-exports functions from smaller, more focused modules within the `/ai` directory.
  */
 export { initialize as initializeAI, startNewGameSession, downloadModel } from "./ai/session";
-export { transcribeAudio, getAnswerToPlayerQuestion, getAIQuestionAndAnalysis } from "./ai/api";
+export { getAnswerToPlayerQuestion, getAIQuestionAndAnalysis } from "./ai/api";
