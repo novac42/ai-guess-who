@@ -1,60 +1,53 @@
-# AI Guess Who?
+# AI 猜名人：历史人物版
 
-A modern, privacy-focused take on the classic "Guess Who?" board game, where you challenge a powerful AI that runs entirely in your browser. This project showcases the capabilities of the experimental on-device Generative AI API.
+一个中文、纯文字的 AI Guess Who 网页游戏。玩家和本地 AI 各自抽取一位历史人物，通过只能回答“是/否”的问题排除候选，先猜出对方人物的一方获胜。
 
-## Hosted version
+## 特点
 
-Play the game at: [https://brechtdr.github.io/ai-guess-who/](https://brechtdr.github.io/ai-guess-who/)
+- 使用中外混合历史人物牌库。
+- 全流程中文界面和中文提示词。
+- 使用浏览器端 on-device `LanguageModel` Prompt API。
+- 只向模型发送文字资料，不使用图像理解、语音输入或服务器端 AI。
+- 支持暴露兼容 Prompt API 的 Chrome 或 Edge 浏览器。
 
-## About The Project
+## 浏览器要求
 
-This isn't your average web game. "AI Guess Who?" brings the classic deductive reasoning game to life with a unique twist: your opponent is a Gemini Nano AI model that lives on your device.
+需要使用支持本地 Prompt API 的 Chromium 浏览器，例如启用相关实验能力后的 Chrome 或 Edge。不同浏览器版本的开关名称可能变化，请以当前浏览器的 Prompt API 文档和实验功能页面为准。
 
-**Key Features:**
+如果浏览器没有暴露 `LanguageModel` 或 `ai.languageModel`，应用会在启动页显示兼容性提示。
 
-- **On-Device AI**: All AI processing happens locally in your browser. No data is ever sent to a server, ensuring 100% privacy.
-- **Offline Play**: Once the AI model is downloaded, the game is fully playable without an internet connection.
-- **Custom Games**: Use your device's camera to create your own set of characters and challenge the AI with familiar faces. Your custom sets are saved in the browser for easy reuse.
-- **Voice Input**: Ask your questions hands-free using your microphone, powered by the AI's multi-modal capabilities.
-- **Strategic AI Opponent**: The AI doesn't just answer questions; it analyzes the board to ask strategically sound questions designed to eliminate the most characters at once.
+## 本地运行
 
-Read more in [this blog post](https://developer.chrome.com/blog/ai-guessing-game).
+安装依赖：
 
-## Getting Started
+```sh
+npm install
+```
 
-Because this project uses experimental web technology, a specific browser and configuration are required to run it.
+启动开发服务器：
 
-### Prerequisites
+```sh
+npm run dev
+```
 
-1.  **Browser**: You must use a browser that supports the on-device `LanguageModel` API, such as **Google Chrome** (you may notice better performance using **Chrome Canary** with the latest improvements).
-2.  The [hosted version](#hosted-version) uses an [origin trial token](https://developer.chrome.com/docs/web-platform/origin-trials) to enable the necessary features, but for running it locally you will need to **Enable Feature Flags**: Open your Chrome browser and enable the following two flags by copying and pasting the URLs into your address bar, setting them to "Enabled", and restarting the browser.
+构建生产版本：
 
-- `chrome://flags/#prompt-api-for-gemini-nano` (enabled)
-- `chrome://flags/#optimization-guide-on-device-model` (place in bypass)
-- `chrome://flags/#enable-experimental-web-platform-features` (enabled)
+```sh
+npm run build
+```
 
-### First-Time Setup
+格式化代码：
 
-The first time you load the application, it will need to download the on-device AI model (a few hundred megabytes). A progress bar will be displayed. This is a one-time process.
+```sh
+npm run format
+```
 
-### Installation & Running
+## 玩法
 
-1.  Clone the repository
-2.  Install NPM packages:
-    ```sh
-    npm install
-    ```
-3.  Run the development server:
-    ```sh
-    npm run dev
-    ```
-    The application will be available at `http://localhost:5173` (or another port if 5173 is in use).
-
-## Available Scripts
-
-In the project directory, you can run:
-
-- `npm run dev`
-- Runs the app in development mode using Vite. Open your browser to the local server address to view it.
-- `npm run format`
-- Formats all project files using Prettier according to the defined style rules.
+1. 打开应用并等待本地 AI 模型就绪。
+2. 点击“开始游戏”。
+3. 查看你的秘密人物和候选列表。
+4. 用中文提出能用“是/否”回答的问题。
+5. 根据 AI 的回答点击人物卡排除候选。
+6. 结束回合后，AI 会提出问题，你回答“是”或“否”。
+7. 当你确定答案时，可以直接问“是孔子吗？”这类最终猜测。

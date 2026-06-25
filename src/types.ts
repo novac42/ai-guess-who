@@ -15,7 +15,6 @@ export type Message = {
 
 export enum GameState {
     SETUP,
-    CUSTOM_SETUP,
     PLAYER_TURN_ASKING,
     PLAYER_TURN_ELIMINATING,
     AI_TURN,
