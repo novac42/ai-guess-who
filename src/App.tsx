@@ -123,9 +123,7 @@ function App() {
                                                     : undefined
                                             }
                                         />
-                                        <p className={styles.boardSubtext}>
-                                            AI 会根据你的回答排除自己的候选人物。
-                                        </p>
+                                        <p className={styles.boardSubtext}>AI 会根据你的回答排除自己的候选人物。</p>
                                     </div>
                                     <div className={styles.boardWrapper}>
                                         <h2 className={styles.boardTitle}>你的候选列表</h2>

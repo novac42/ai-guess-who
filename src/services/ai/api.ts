@@ -9,17 +9,20 @@ import { promiseWithTimeout } from "./timeout";
 const GENERAL_PROMPT_TIMEOUT_MS = 30000;
 
 /**
- * Gets a "Yes" or "No" answer from the AI for a player's question about a secret character.
- * @param character The AI's secret character.
+ * Gets a yes/no answer from the AI for a player's question about a secret figure.
+ * @param character The AI's secret figure.
  * @param question The player's question.
- * @returns A promise that resolves to "Yes" or "No".
+ * @returns A promise that resolves to the Chinese answer text.
  */
 export async function getAnswerToPlayerQuestion(character: Character, question: string): Promise<string> {
     const session = await getSession();
 
     const promptText = getAnswerToPlayerQuestionPrompt(character, question);
     const schema = { type: "boolean" };
-    const result = await promiseWithTimeout(session.prompt(promptText, { responseConstraint: schema }), GENERAL_PROMPT_TIMEOUT_MS);
+    const result = await promiseWithTimeout(
+        session.prompt(promptText, { responseConstraint: schema }),
+        GENERAL_PROMPT_TIMEOUT_MS,
+    );
 
     if (typeof result !== "string") {
         console.error("Player question answer is not a string:", result);

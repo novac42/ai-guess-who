@@ -18,7 +18,7 @@ export enum GameState {
     PLAYER_TURN_ASKING,
     PLAYER_TURN_ELIMINATING,
     AI_TURN,
-    PLAYER_REVIEWING_AI_ANALYSIS, // New state for player to see AI's reasoning
+    PLAYER_REVIEWING_AI_ANALYSIS,
     AI_TURN_WAITING_FOR_ANSWER,
     GAME_OVER,
 }

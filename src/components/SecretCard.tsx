@@ -9,8 +9,8 @@ export type SecretCardProps = {
 };
 
 /**
- * A component to display the player's or AI's secret character card.
- * It can be shown as a revealed card or a hidden placeholder.
+ * A component to display the player's or AI's secret figure profile.
+ * It can be shown as a revealed profile or a hidden placeholder.
  */
 function SecretCard({ character, revealed = true }: SecretCardProps) {
     return (

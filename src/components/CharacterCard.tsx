@@ -40,9 +40,7 @@ function CharacterCard({ character, isEliminated, onClick, analysisResult, class
 
         const icon = analysisResult ? <CheckIcon /> : <XIcon />;
         const overlayClass = analysisResult ? styles.analysisOverlayPositive : styles.analysisOverlayNegative;
-        const label = analysisResult
-            ? "AI 判断这个人物符合问题特征。"
-            : "AI 判断这个人物不符合问题特征。";
+        const label = analysisResult ? "AI 判断这个人物符合问题特征。" : "AI 判断这个人物不符合问题特征。";
 
         return (
             <div className={`${styles.analysisOverlay} ${overlayClass}`} aria-label={label}>

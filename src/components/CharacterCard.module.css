@@ -2,18 +2,18 @@
 	display: flex;
 	position: relative;
 	flex-direction: column;
-	gap: var(--space-2);
 	min-height: 15rem;
 	padding: var(--space-3);
 	overflow: hidden;
-	transition:
-		border-color 0.2s ease,
-		background-color 0.2s ease,
-		opacity 0.2s ease;
+	gap: var(--space-2);
 	border: 1px solid var(--color-border-glass);
 	border-radius: var(--border-radius-sm);
 	background-color: rgba(17, 24, 39, 0.72);
 	cursor: pointer;
+	transition:
+		border-color 0.2s ease,
+		background-color 0.2s ease,
+		opacity 0.2s ease;
 }
 
 .card:hover,
@@ -36,8 +36,8 @@
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
-	gap: var(--space-2);
 	min-height: 1.75rem;
+	gap: var(--space-2);
 }
 
 .cardName {
@@ -74,15 +74,15 @@
 
 .metaList {
 	display: grid;
-	gap: var(--space-1);
 	margin: 0;
+	gap: var(--space-1);
 }
 
 .metaList div {
 	display: grid;
 	grid-template-columns: 2.5rem minmax(0, 1fr);
-	gap: var(--space-2);
 	align-items: start;
+	gap: var(--space-2);
 }
 
 .metaList dt {

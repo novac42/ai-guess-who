@@ -75,8 +75,7 @@ export const useAIActions = ({
 
                     const positiveFeatures = analysis.filter((res) => res.has_feature).length;
                     if (positiveFeatures === 0 || positiveFeatures === analysis.length) {
-                        retryReason =
-                            "上一个问题无效，因为它不能排除任何候选人物。你必须提出能区分候选人物的问题。";
+                        retryReason = "上一个问题无效，因为它不能排除任何候选人物。你必须提出能区分候选人物的问题。";
                         lastFailedQuestion = question;
                         throw new Error("AI generated a non-discriminatory question.");
                     }

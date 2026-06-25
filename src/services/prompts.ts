@@ -4,7 +4,9 @@ const formatFigure = (character: Character): string =>
     `${character.name}｜${character.region}｜${character.era}｜${character.roles.join("、")}｜${character.tags.join("、")}｜${character.summary}`;
 
 const formatFigureList = (characters: Character[]): string =>
-    characters.map((character, index) => `${index + 1}. ${character.character_id}｜${formatFigure(character)}`).join("\n");
+    characters
+        .map((character, index) => `${index + 1}. ${character.character_id}｜${formatFigure(character)}`)
+        .join("\n");
 
 /**
  * Provides the system prompt that defines the AI's strategy for the text-only game.

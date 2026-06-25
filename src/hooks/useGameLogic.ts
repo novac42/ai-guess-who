@@ -91,7 +91,7 @@ export const useGameLogic = () => {
             } catch (error) {
                 console.error("Game start failed:", error);
                 setAiStatus(AIStatus.ERROR);
-                setAiStatusMessage(error instanceof Error ? error.message : "Failed to start game session.");
+                setAiStatusMessage(error instanceof Error ? error.message : "启动游戏会话失败。");
                 setGameState(GameState.SETUP);
                 throw error;
             }

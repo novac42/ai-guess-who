@@ -58,14 +58,14 @@ export const usePlayerActions = ({
                     addMessage({ sender: "AI", text: answer });
                     addMessage({
                         sender: "SYSTEM",
-                    text: `你现在可以排除候选人物。完成后点击“结束回合”。`,
-                });
-                setGameState(GameState.PLAYER_TURN_ELIMINATING);
-            } catch (error) {
-                console.error(error);
-                addMessage({ sender: "SYSTEM", text: "抱歉，我刚才没有回答好。请再试一次。" });
-            }
-        };
+                        text: `你现在可以排除候选人物。完成后点击“结束回合”。`,
+                    });
+                    setGameState(GameState.PLAYER_TURN_ELIMINATING);
+                } catch (error) {
+                    console.error(error);
+                    addMessage({ sender: "SYSTEM", text: "抱歉，我刚才没有回答好。请再试一次。" });
+                }
+            };
 
             const guessedName = findGuessedCharacterName(question, activeCharacters);
 
@@ -102,7 +102,7 @@ export const usePlayerActions = ({
     );
 
     const handleEndTurn = useCallback(() => {
-        addMessage({ sender: "SYSTEM", text: "AI is thinking of a question..." });
+        addMessage({ sender: "SYSTEM", text: "AI 正在思考问题..." });
         setGameState(GameState.AI_TURN);
     }, [addMessage, setGameState]);
 

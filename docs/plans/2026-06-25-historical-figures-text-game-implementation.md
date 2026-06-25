@@ -13,6 +13,7 @@
 ### Task 1: Convert Character Data To Historical Figure Text Profiles
 
 **Files:**
+
 - Modify: `src/types.ts`
 - Modify: `src/constants.ts`
 - Modify: `src/hooks/useGameState.ts`
@@ -108,6 +109,7 @@ git commit -m "feat: add historical figure text data"
 ### Task 2: Make Prompt API Sessions Text-Only And Browser-Compatible
 
 **Files:**
+
 - Modify: `src/services/ai/session.ts`
 - Modify: `src/services/ai/types.ts`
 - Modify: `src/services/ai/api.ts`
@@ -137,7 +139,7 @@ onStatusChange(AIStatus.READY, "本地 AI 模型已就绪");
 Unavailable message:
 
 ```typescript
-"当前浏览器没有可用的本地 Prompt API。请使用支持该能力的 Chrome 或 Edge，并按需启用实验性 AI 功能。"
+"当前浏览器没有可用的本地 Prompt API。请使用支持该能力的 Chrome 或 Edge，并按需启用实验性 AI 功能。";
 ```
 
 **Step 3: Keep capability detection browser-neutral**
@@ -172,7 +174,7 @@ return JSON.parse(result) ? "是" : "否";
 If `session.prompt` requires structured messages in the current browser, use:
 
 ```typescript
-session.prompt([{ role: "user", content: [{ type: "text", value: promptText }] }], options)
+session.prompt([{ role: "user", content: [{ type: "text", value: promptText }] }], options);
 ```
 
 Choose the style already accepted by the project after local build checks. Do not include image or audio parts.
@@ -219,6 +221,7 @@ git commit -m "feat: use text-only prompt api"
 ### Task 3: Replace Image Cards With Chinese Text Cards
 
 **Files:**
+
 - Modify: `src/components/CharacterCard.tsx`
 - Modify: `src/components/CharacterCard.module.css`
 - Modify: `src/components/SecretCard.tsx`
@@ -286,6 +289,7 @@ git commit -m "feat: render historical figures as text cards"
 ### Task 4: Localize Game Flow And Remove Voice/Custom Entrypoints
 
 **Files:**
+
 - Modify: `src/App.tsx`
 - Modify: `src/components/GameSetup.tsx`
 - Modify: `src/components/GameSetup.module.css`
@@ -394,6 +398,7 @@ git commit -m "feat: localize historical figure game flow"
 ### Task 5: Remove Dead Multimodal And Custom Game Code
 
 **Files:**
+
 - Delete: `src/hooks/useSpeechToText.ts`
 - Delete: `src/components/CustomGameSetup.tsx`
 - Delete: `src/components/CustomGameSetup.module.css`
@@ -461,6 +466,7 @@ git commit -m "chore: remove multimodal and custom game paths"
 ### Task 6: Final Verification And Browser Smoke Test
 
 **Files:**
+
 - Modify only files needed for fixes found during verification.
 
 **Step 1: Format**
