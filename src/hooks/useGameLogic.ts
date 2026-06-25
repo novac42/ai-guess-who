@@ -118,7 +118,7 @@ export const useGameLogic = () => {
         setHasPendingStart(false);
         setIsLoading(true);
         try {
-            const selectedCharacters = shuffleArray(defaultCharsWithBlobs).slice(0, 12);
+            const selectedCharacters = shuffleArray(defaultCharsWithBlobs).slice(0, 5);
             await startGame(selectedCharacters);
         } catch (e) {
             // Error is handled by startGame

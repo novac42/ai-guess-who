@@ -170,7 +170,7 @@ function GameSetup({
             <div className={styles.optionsGrid}>
                 <SetupOptionCard
                     title="开始游戏"
-                    description="从中外历史人物牌库中随机抽取 12 位候选人物。"
+                    description="从中外历史人物牌库中随机抽取 5 位候选人物。"
                     icon={<UsersIcon />}
                     onClick={onStartDefault}
                     disabled={defaultGameDisabled}
