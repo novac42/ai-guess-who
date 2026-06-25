@@ -15,8 +15,7 @@ export type CharacterCardProps = Omit<ComponentPropsWithoutRef<"div">, "onClick"
 };
 
 /**
- * A card component that displays a historical figure's text profile.
- * It can be marked as eliminated.
+ * A candidate card that keeps board scanning focused on the figure name.
  */
 function CharacterCard({ character, isEliminated, onClick, analysisResult, className, ...props }: CharacterCardProps) {
     const containerClasses = `${styles.card} ${isEliminated ? styles.isEliminated : ""} ${className || ""}`;
@@ -63,26 +62,6 @@ function CharacterCard({ character, isEliminated, onClick, analysisResult, class
                 <h3 className={styles.cardName}>{character.name}</h3>
                 {renderAnalysisOverlay()}
             </div>
-            <dl className={styles.metaList}>
-                <div>
-                    <dt>地区</dt>
-                    <dd>{character.region}</dd>
-                </div>
-                <div>
-                    <dt>时代</dt>
-                    <dd>{character.era}</dd>
-                </div>
-                <div>
-                    <dt>身份</dt>
-                    <dd>{character.roles.join("、")}</dd>
-                </div>
-            </dl>
-            <div className={styles.tags}>
-                {character.tags.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                ))}
-            </div>
-            <p className={styles.summary}>{character.summary}</p>
             {isEliminated && <span className={styles.eliminatedBadge}>已排除</span>}
         </article>
     );

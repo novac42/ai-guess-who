@@ -1,4 +1,5 @@
 import React, { type ComponentPropsWithoutRef, useEffect, useRef, useState } from "react";
+import { SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON } from "../config";
 import { AIStatus } from "../types";
 import styles from "./GameSetup.module.css";
 import { CheckCircleIcon, DownloadIcon, SpinnerIcon, UsersIcon } from "./icons";
@@ -38,6 +39,8 @@ export type GameSetupProps = {
     onSetReviewMode: (isEnabled: boolean) => void;
     /** Callback to initiate the AI model download. */
     onDownload: () => void;
+    /** Whether the player has clicked start and is waiting for model preparation. */
+    hasPendingStart: boolean;
 };
 
 /**
@@ -54,9 +57,15 @@ function GameSetup({
     isReviewModeEnabled,
     onSetReviewMode,
     onDownload,
+    hasPendingStart,
 }: GameSetupProps) {
     const isReady = aiStatus === AIStatus.READY;
-    const defaultGameDisabled = !isReady || !hasDefaultChars || isLoading;
+    const isPreparingModel =
+        aiStatus === AIStatus.INITIALIZING || aiStatus === AIStatus.DOWNLOADING || (hasPendingStart && !isReady);
+    const isModelUnavailable = aiStatus === AIStatus.ERROR || aiStatus === AIStatus.UNAVAILABLE;
+    const defaultGameDisabled = SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON
+        ? !isReady || !hasDefaultChars || isLoading
+        : isLoading || isPreparingModel || isModelUnavailable || (isReady && !hasDefaultChars);
 
     const [showComplete, setShowComplete] = useState(false);
     const prevAiStatus = useRef(aiStatus);
@@ -82,9 +91,18 @@ function GameSetup({
 
         switch (aiStatus) {
             case AIStatus.DOWNLOADABLE:
+                if (!SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON) {
+                    return hasPendingStart ? (
+                        <div className={styles.statusContainer} role="status">
+                            <p className={styles.statusText}>正在准备本地 AI 模型...</p>
+                            <p className={styles.statusHint}>首次使用需要一些时间。</p>
+                        </div>
+                    ) : null;
+                }
+
                 return (
                     <div className={styles.statusContainer} role="status">
-                        <p className={`${styles.subtitle} ${styles.downloadPrompt}`}>{aiStatusMessage}</p>
+                        <p className={`${styles.statusText} ${styles.downloadPrompt}`}>{aiStatusMessage}</p>
                         <button onClick={onDownload} className={styles.downloadButton}>
                             <DownloadIcon />
                             下载本地 AI 模型
@@ -96,21 +114,29 @@ function GameSetup({
                 return (
                     <div className={styles.statusContainer} role="status">
                         {aiStatus === AIStatus.INITIALIZING && <SpinnerIcon className={styles.spinner} />}
-                        <p className={styles.subtitle}>{aiStatusMessage}</p>
-                        {aiStatus === AIStatus.DOWNLOADING && downloadProgress !== null && (
-                            <div className={styles.progressWrapper}>
-                                <div
-                                    className={styles.progressBarContainer}
-                                    aria-label={`正在下载本地 AI 模型：${Math.floor(downloadProgress)}%`}
-                                    aria-valuenow={downloadProgress}
-                                    aria-valuemin={0}
-                                    aria-valuemax={100}
-                                >
-                                    <div className={styles.progressBar} style={{ width: `${downloadProgress}%` }}></div>
+                        <p className={styles.statusText}>
+                            {hasPendingStart ? "正在准备本地 AI 模型..." : aiStatusMessage}
+                        </p>
+                        {hasPendingStart && <p className={styles.statusHint}>首次使用需要一些时间。</p>}
+                        {SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON &&
+                            aiStatus === AIStatus.DOWNLOADING &&
+                            downloadProgress !== null && (
+                                <div className={styles.progressWrapper}>
+                                    <div
+                                        className={styles.progressBarContainer}
+                                        aria-label={`正在下载本地 AI 模型：${Math.floor(downloadProgress)}%`}
+                                        aria-valuenow={downloadProgress}
+                                        aria-valuemin={0}
+                                        aria-valuemax={100}
+                                    >
+                                        <div
+                                            className={styles.progressBar}
+                                            style={{ width: `${downloadProgress}%` }}
+                                        ></div>
+                                    </div>
+                                    <span className={styles.progressPercentage}>{Math.floor(downloadProgress)}%</span>
                                 </div>
-                                <span className={styles.progressPercentage}>{Math.floor(downloadProgress)}%</span>
-                            </div>
-                        )}
+                            )}
                     </div>
                 );
             case AIStatus.UNAVAILABLE:

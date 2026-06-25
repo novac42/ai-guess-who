@@ -28,6 +28,7 @@ function App() {
         aiStatusMessage,
         downloadProgress,
         defaultCharsWithBlobs,
+        hasPendingStart,
         lastAIAnalysis,
         isReviewModeEnabled,
 
@@ -64,6 +65,7 @@ function App() {
                         isReviewModeEnabled={isReviewModeEnabled}
                         onSetReviewMode={handleSetReviewMode}
                         onDownload={handleDownload}
+                        hasPendingStart={hasPendingStart}
                     />
                 );
             case GameState.GAME_OVER:

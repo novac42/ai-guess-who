@@ -39,6 +39,7 @@ export const useAIModel = () => {
     };
 
     const handleDownload = () => {
+        setDownloadProgress(null);
         builtInAIService.downloadModel({
             onStatusChange: handleStatusChange,
             onProgress: setDownloadProgress,

@@ -19,21 +19,32 @@
 	background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
 	-webkit-background-clip: text;
 	font-weight: 800;
-	font-size: 2.25rem;
+	font-size: clamp(1.55rem, 7vw, 2.6rem);
+	white-space: nowrap;
 	-webkit-text-fill-color: transparent;
 	filter: drop-shadow(0 0 10px var(--color-primary));
-}
-
-@media (min-width: 768px) {
-	.mainTitle {
-		font-size: 3rem;
-	}
 }
 
 .subtitle {
 	color: var(--color-text-secondary);
 	font-size: 1.25rem;
 	line-height: 1.5;
+}
+
+.statusText {
+	margin: 0;
+	color: var(--color-text-secondary);
+	font-size: 0.95rem;
+	line-height: 1.45;
+	text-align: center;
+}
+
+.statusHint {
+	margin: calc(-1 * var(--space-3)) 0 0;
+	color: var(--color-text-secondary);
+	font-size: 0.78rem;
+	line-height: 1.4;
+	text-align: center;
 }
 
 .statusContainer {
@@ -120,13 +131,13 @@
 	display: grid;
 	grid-template-columns: 1fr;
 	width: 100%;
-	max-width: 64rem;
+	max-width: 32rem;
 	gap: var(--space-4);
 }
 
 @media (min-width: 768px) {
 	.optionsGrid {
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-8);
 	}
 

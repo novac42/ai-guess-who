@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON } from "../config";
 import { AIStatus, GameState, type Character } from "../types";
 import { useAIActions } from "./useAIActions";
 import { useAIModel } from "./useAIModel";
@@ -12,6 +13,7 @@ import { usePlayerActions } from "./usePlayerActions";
  * different aspects of the game logic.
  */
 export const useGameLogic = () => {
+    const [hasPendingStart, setHasPendingStart] = useState(false);
     //
     // --- Sub-hooks for managing different aspects of game logic ---
     //
@@ -100,7 +102,20 @@ export const useGameLogic = () => {
     );
 
     const handleStartDefault = useCallback(async () => {
-        if (!defaultCharsWithBlobs) return;
+        if (!SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON && aiStatus === AIStatus.DOWNLOADABLE) {
+            setHasPendingStart(true);
+            handleDownload();
+            return;
+        }
+
+        if (aiStatus !== AIStatus.READY || !defaultCharsWithBlobs) {
+            if (!SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON) {
+                setHasPendingStart(true);
+            }
+            return;
+        }
+
+        setHasPendingStart(false);
         setIsLoading(true);
         try {
             const selectedCharacters = shuffleArray(defaultCharsWithBlobs).slice(0, 12);
@@ -110,10 +125,22 @@ export const useGameLogic = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [defaultCharsWithBlobs, startGame, setIsLoading, shuffleArray]);
+    }, [aiStatus, defaultCharsWithBlobs, handleDownload, startGame, setIsLoading, shuffleArray]);
+
+    useEffect(() => {
+        if (!hasPendingStart || aiStatus !== AIStatus.READY || !defaultCharsWithBlobs || isLoading) return;
+        void handleStartDefault();
+    }, [aiStatus, defaultCharsWithBlobs, handleStartDefault, hasPendingStart, isLoading]);
+
+    useEffect(() => {
+        if (aiStatus === AIStatus.ERROR || aiStatus === AIStatus.UNAVAILABLE) {
+            setHasPendingStart(false);
+        }
+    }, [aiStatus]);
 
     const resetGame = useCallback(() => {
         coreResetGame(setPlayerEliminatedChars, setLastAIAnalysis, setIsAIFinalGuess, setDownloadProgress);
+        setHasPendingStart(false);
         if (aiStatus === AIStatus.ERROR || aiStatus === AIStatus.UNAVAILABLE) {
             reinitializeAI();
         }
@@ -147,6 +174,7 @@ export const useGameLogic = () => {
         aiStatusMessage,
         downloadProgress,
         defaultCharsWithBlobs,
+        hasPendingStart,
         lastAIAnalysis,
         isReviewModeEnabled,
 
