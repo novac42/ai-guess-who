@@ -6,7 +6,6 @@ export default defineConfig({
     plugins: [react()],
     build: {
         outDir: "docs",
-        emptyOutDir: false,
         target: "esnext",
         cssCodeSplit: false,
     },
