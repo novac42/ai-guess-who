@@ -4,7 +4,7 @@ import styles from "./SecretCard.module.css";
 export type SecretCardProps = {
     /** The character for the secret card. */
     character: Character;
-    /** Whether to reveal the character's image and name. Defaults to true. */
+    /** Whether to reveal the character profile. Defaults to true. */
     revealed?: boolean;
 };
 
@@ -16,15 +16,33 @@ function SecretCard({ character, revealed = true }: SecretCardProps) {
     return (
         <div className={styles.cardContainer}>
             {revealed ? (
-                <>
-                    <img src={character.image} alt={character.name} className={styles.cardImage} />
-                    <div className={styles.cardNameWrapper}>
-                        <p className={styles.cardName}>{character.name}</p>
+                <article className={styles.profile} aria-label={`${character.name}人物资料`}>
+                    <h3 className={styles.cardName}>{character.name}</h3>
+                    <dl className={styles.metaList}>
+                        <div>
+                            <dt>地区</dt>
+                            <dd>{character.region}</dd>
+                        </div>
+                        <div>
+                            <dt>时代</dt>
+                            <dd>{character.era}</dd>
+                        </div>
+                        <div>
+                            <dt>身份</dt>
+                            <dd>{character.roles.join("、")}</dd>
+                        </div>
+                    </dl>
+                    <div className={styles.tags}>
+                        {character.tags.map((tag) => (
+                            <span key={tag}>{tag}</span>
+                        ))}
                     </div>
-                </>
+                    <p className={styles.summary}>{character.summary}</p>
+                </article>
             ) : (
-                <div className={styles.placeholder} aria-label="Hidden AI character card">
+                <div className={styles.placeholder} aria-label="AI 的秘密人物尚未揭晓">
                     <span>?</span>
+                    <p>AI 的秘密人物</p>
                 </div>
             )}
         </div>
