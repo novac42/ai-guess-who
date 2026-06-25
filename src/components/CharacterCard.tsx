@@ -15,8 +15,8 @@ export type CharacterCardProps = Omit<ComponentPropsWithoutRef<"div">, "onClick"
 };
 
 /**
- * A card component that displays a character's image and name.
- * It can be flipped to show it has been eliminated.
+ * A card component that displays a historical figure's text profile.
+ * It can be marked as eliminated.
  */
 function CharacterCard({ character, isEliminated, onClick, analysisResult, className, ...props }: CharacterCardProps) {
     const containerClasses = `${styles.card} ${isEliminated ? styles.isEliminated : ""} ${className || ""}`;
