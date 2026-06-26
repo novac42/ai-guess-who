@@ -9,3 +9,5 @@ node_modules/
 /vendor/
 .pnpm-store
 .worktrees/
+dist/
+.vercel/
