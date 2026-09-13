@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { GameState, type Message } from "../types";
+import { text } from "../i18n";
 import styles from "./ChatControls.module.css";
 import { SendIcon } from "./icons";
 
@@ -15,9 +16,10 @@ export type ChatControlsProps = {
     /** Callback for when the player ends their turn. */
     onEndTurn: () => void;
     /** Callback for when the player answers the AI's question. */
-    onPlayerAnswer: (answer: "Yes" | "No") => void;
+    onPlayerAnswer: (answer: "yes" | "no") => void;
     /** Callback for when the player confirms they have reviewed the AI analysis. */
     onConfirmAIAnalysis: () => void;
+    chatText: (typeof text)["en"]["chat"];
 };
 
 /**
@@ -32,6 +34,7 @@ function ChatControls({
     onEndTurn,
     onPlayerAnswer,
     onConfirmAIAnalysis,
+    chatText,
 }: ChatControlsProps) {
     const [inputValue, setInputValue] = useState("");
     const chatLogRef = useRef<HTMLDivElement>(null);
@@ -83,7 +86,7 @@ function ChatControls({
                 {messages.map(renderMessage)}
                 {isLoading && (
                     <div className={`${styles.message} ${styles.systemMessage} ${styles.loadingMessage}`}>
-                        处理中...
+                        {chatText.processing}
                     </div>
                 )}
             </div>
@@ -95,16 +98,16 @@ function ChatControls({
                             type="text"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            placeholder="输入一个能用“是/否”回答的问题..."
+                            placeholder={chatText.questionPlaceholder}
                             className={styles.textInput}
                             disabled={isLoading}
-                            aria-label="你的问题"
+                            aria-label={chatText.yourQuestionAria}
                         />
                         <button
                             type="submit"
                             className={`${styles.iconButton} ${styles.sendButton}`}
                             disabled={isLoading || !inputValue}
-                            aria-label="发送问题"
+                            aria-label={chatText.sendQuestionAria}
                         >
                             <SendIcon />
                         </button>
@@ -117,7 +120,7 @@ function ChatControls({
                         className={`${styles.actionButton} ${styles.endTurnButton}`}
                         disabled={isLoading}
                     >
-                        结束回合
+                        {chatText.endTurn}
                     </button>
                 )}
 
@@ -127,25 +130,25 @@ function ChatControls({
                         className={`${styles.actionButton} ${styles.continueButton}`}
                         disabled={isLoading}
                     >
-                        继续回答
+                        {chatText.continueAnswering}
                     </button>
                 )}
 
                 {showAnswerButtons && (
                     <div className={styles.answerButtons}>
                         <button
-                            onClick={() => onPlayerAnswer("Yes")}
+                            onClick={() => onPlayerAnswer("yes")}
                             className={`${styles.actionButton} ${styles.yesButton}`}
                             disabled={isLoading}
                         >
-                            是
+                            {chatText.yes}
                         </button>
                         <button
-                            onClick={() => onPlayerAnswer("No")}
+                            onClick={() => onPlayerAnswer("no")}
                             className={`${styles.actionButton} ${styles.noButton}`}
                             disabled={isLoading}
                         >
-                            否
+                            {chatText.no}
                         </button>
                     </div>
                 )}

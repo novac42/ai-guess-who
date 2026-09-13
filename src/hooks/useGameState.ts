@@ -1,6 +1,11 @@
 import React, { useCallback, useState } from "react";
 import * as buildInAIService from "../services/builtInAIService.ts";
 import { GameState, type Character, type EliminationAnalysisResult, type GameWinner, type Message } from "../types";
+import { getLocalizedCharacter, Language, replaceTemplate, text } from "../i18n";
+
+type UseGameStateProps = {
+    language: Language;
+};
 
 /**
  * A utility function to shuffle an array using the Fisher-Yates algorithm.
@@ -19,7 +24,7 @@ const shuffleArray = <T>(array: T[]): T[] => {
 /**
  * Manages the core state of the game, including characters, secrets, messages, and game flow.
  */
-export const useGameState = () => {
+export const useGameState = ({ language }: UseGameStateProps) => {
     const [gameState, setGameState] = useState<GameState>(GameState.SETUP);
     const [activeCharacters, setActiveCharacters] = useState<Character[]>([]);
     const [playerSecret, setPlayerSecret] = useState<Character | null>(null);
@@ -36,7 +41,7 @@ export const useGameState = () => {
     const startGame = useCallback(
         async (characterSet: Character[], setAiRemainingChars: React.Dispatch<React.SetStateAction<Character[]>>) => {
             try {
-                await buildInAIService.startNewGameSession();
+                await buildInAIService.startNewGameSession(language);
             } catch (error) {
                 console.error("Failed to start AI game session:", error);
                 throw error; // Re-throw to be handled by the caller
@@ -53,6 +58,7 @@ export const useGameState = () => {
 
             const pSecret = characterSet[playerIndex];
             const aSecret = characterSet[aiIndex];
+            const localizedPlayerSecret = getLocalizedCharacter(pSecret, language);
             setPlayerSecret(pSecret);
             setAiSecret(aSecret);
 
@@ -61,14 +67,16 @@ export const useGameState = () => {
             setMessages([
                 {
                     sender: "SYSTEM",
-                    text: `新游戏开始。你抽到的人物是${pSecret.name}。现在轮到你提问。`,
+                    text: replaceTemplate(text[language].gameMessages.newGameStart, {
+                        name: localizedPlayerSecret.name,
+                    }),
                 },
             ]);
             setWinner(null);
             setWinReason("");
             setGameState(GameState.PLAYER_TURN_ASKING);
         },
-        [],
+        [language],
     );
 
     const resetGame = useCallback(

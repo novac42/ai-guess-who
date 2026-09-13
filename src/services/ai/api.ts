@@ -2,9 +2,10 @@
  * @file Contains the core functions for interacting with the AI model for game logic.
  */
 import { type AIQuestionAndAnalysis, type Character, type Message } from "../../types";
-import { getAIQuestionAndAnalysisPrompt, getAnswerToPlayerQuestionPrompt, getSystemPrompt } from "../prompts";
+import { getAIQuestionAndAnalysisPrompt, getAnswerToPlayerQuestionPrompt, getSystemPromptByLanguage } from "../prompts";
 import { getSession } from "./session";
 import { promiseWithTimeout } from "./timeout";
+import { Language, text } from "../../i18n";
 
 const GENERAL_PROMPT_TIMEOUT_MS = 30000;
 
@@ -14,10 +15,14 @@ const GENERAL_PROMPT_TIMEOUT_MS = 30000;
  * @param question The player's question.
  * @returns A promise that resolves to the Chinese answer text.
  */
-export async function getAnswerToPlayerQuestion(character: Character, question: string): Promise<string> {
+export async function getAnswerToPlayerQuestion(
+    character: Character,
+    question: string,
+    language: Language,
+): Promise<string> {
     const session = await getSession();
 
-    const promptText = getAnswerToPlayerQuestionPrompt(character, question);
+    const promptText = getAnswerToPlayerQuestionPrompt(character, question, language);
     const schema = { type: "boolean" };
     const result = await promiseWithTimeout(
         session.prompt(promptText, { responseConstraint: schema }),
@@ -29,7 +34,12 @@ export async function getAnswerToPlayerQuestion(character: Character, question: 
         throw new Error("AI failed to return a valid response for the player's question.");
     }
 
-    return JSON.parse(result) ? "是" : "否";
+    const answer = JSON.parse(result);
+    if (typeof answer !== "boolean") {
+        throw new Error(text[language].aiFlow.errorAnswerFormat);
+    }
+
+    return answer ? text[language].chat.yes : text[language].chat.no;
 }
 
 /**
@@ -44,6 +54,7 @@ export async function getAnswerToPlayerQuestion(character: Character, question: 
 export async function getAIQuestionAndAnalysis(
     characters: Character[],
     messages: Message[],
+    language: Language,
     retryReason?: string,
     lastFailedQuestion?: string,
 ): Promise<AIQuestionAndAnalysis> {
@@ -61,8 +72,8 @@ export async function getAIQuestionAndAnalysis(
             });
         });
 
-    const systemPrompt = getSystemPrompt();
-    const turnPrompt = getAIQuestionAndAnalysisPrompt(characters, retryReason, lastFailedQuestion);
+    const systemPrompt = getSystemPromptByLanguage(language);
+    const turnPrompt = getAIQuestionAndAnalysisPrompt(characters, language, retryReason, lastFailedQuestion);
     const userContent: any[] = [{ type: "text", value: `${systemPrompt}\n\n${turnPrompt}` }];
     prompt.push({ role: "user", content: userContent });
 

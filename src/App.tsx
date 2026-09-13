@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./App.module.css";
 import ChatControls from "./components/ChatControls";
 import EndGameDialog from "./components/EndGameDialog";
@@ -6,11 +6,14 @@ import GameBoard from "./components/GameBoard";
 import GameSetup from "./components/GameSetup";
 import SecretCard from "./components/SecretCard";
 import { ChevronDownIcon, ChevronUpIcon } from "./components/icons";
+import { DEFAULT_LANGUAGE, type Language, languageOptions, text } from "./i18n";
 import { useGameLogic } from "./hooks/useGameLogic";
 import { GameState } from "./types";
 
 function App() {
+    const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
     const [isSecretPanelVisible, setSecretPanelVisible] = useState(true);
+    const ui = text[language];
 
     const {
         // State
@@ -44,12 +47,22 @@ function App() {
         handleConfirmAIAnalysis,
         handleSetReviewMode,
         handleDownload,
-    } = useGameLogic();
+    } = useGameLogic({ language });
+
+    useEffect(() => {
+        document.title = ui.app.browserTitle;
+    }, [ui.app.browserTitle]);
+
+    const canChangeLanguage = gameState === GameState.SETUP;
 
     const aiEliminatedChars = useMemo(() => {
         const remainingIds = new Set(aiRemainingChars.map((c) => c.character_id));
         return new Set(activeCharacters.filter((c) => !remainingIds.has(c.character_id)).map((c) => c.character_id));
     }, [aiRemainingChars, activeCharacters]);
+
+    const handleLanguageChange = (value: string) => {
+        setLanguage(value as Language);
+    };
 
     const renderContent = () => {
         switch (gameState) {
@@ -66,6 +79,7 @@ function App() {
                         onSetReviewMode={handleSetReviewMode}
                         onDownload={handleDownload}
                         hasPendingStart={hasPendingStart}
+                        setupText={ui.setup}
                     />
                 );
             case GameState.GAME_OVER:
@@ -77,97 +91,162 @@ function App() {
                 if (!playerSecret || !aiSecret || activeCharacters.length === 0) {
                     return (
                         <div className={styles.errorContainer}>
-                            游戏没有正确初始化。
+                            {ui.app.errorNotInitialized}
                             <button onClick={resetGame} className={styles.restartButton}>
-                                重新开始
+                                {ui.app.restart}
                             </button>
                         </div>
                     );
                 }
+
                 return (
-                    <>
-                        <div className={styles.gameContainer}>
-                            {winner && <EndGameDialog winner={winner} reason={winReason} onPlayAgain={resetGame} />}
-                            <div className={styles.mainGrid}>
-                                <div
-                                    className={`${styles.secretCardsPanel} ${
-                                        !isSecretPanelVisible ? styles.secretCardsCollapsed : ""
-                                    }`}
+                    <div className={styles.gameContainer}>
+                        <header className={styles.topBar}>
+                            <div className={styles.titleGroup}>
+                                <h1 className={styles.appTitle}>{ui.app.title}</h1>
+                                <p className={styles.subtitleText}>{ui.app.subtitle}</p>
+                            </div>
+                            <label className={styles.languageSwitcher}>
+                                <span>{ui.app.languageSelectorLabel}</span>
+                                <select
+                                    value={language}
+                                    onChange={(e) => handleLanguageChange(e.target.value)}
+                                    disabled={!canChangeLanguage}
                                 >
-                                    <div className={styles.sidePanel}>
-                                        <h2 className={styles.sidePanelTitlePlayer}>你的秘密人物</h2>
-                                        <SecretCard character={playerSecret} />
-                                    </div>
-                                    <div className={styles.sidePanel}>
-                                        <h2 className={styles.sidePanelTitleAi}>AI 的秘密人物</h2>
-                                        <SecretCard character={aiSecret} revealed={gameState === GameState.GAME_OVER} />
-                                    </div>
+                                    {languageOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </header>
+
+                        {winner && (
+                            <EndGameDialog
+                                winner={winner}
+                                reason={winReason}
+                                onPlayAgain={resetGame}
+                                text={ui.endGame}
+                            />
+                        )}
+
+                        <div className={styles.mainGrid}>
+                            <div
+                                className={`${styles.secretCardsPanel} ${
+                                    !isSecretPanelVisible ? styles.secretCardsCollapsed : ""
+                                }`}
+                            >
+                                <div className={styles.sidePanel}>
+                                    <h2 className={styles.sidePanelTitlePlayer}>{ui.layout.sidePanelPlayer}</h2>
+                                <SecretCard
+                                    character={playerSecret}
+                                    text={ui.secretCard}
+                                    listJoiner={language === "zh" ? "、" : ", "}
+                                />
                                 </div>
-
-                                <button
-                                    className={styles.secretPanelToggle}
-                                    onClick={() => setSecretPanelVisible((v) => !v)}
-                                    aria-label={isSecretPanelVisible ? "隐藏秘密人物" : "显示秘密人物"}
-                                >
-                                    {isSecretPanelVisible ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                                    <span>{isSecretPanelVisible ? "隐藏秘密人物" : "显示秘密人物"}</span>
-                                </button>
-
-                                <div className={styles.boardArea}>
-                                    <div className={styles.boardWrapper}>
-                                        <h2 className={styles.boardTitle}>AI 的候选列表</h2>
-                                        <GameBoard
-                                            characters={activeCharacters}
-                                            eliminatedChars={aiEliminatedChars}
-                                            analysis={
-                                                gameState === GameState.PLAYER_REVIEWING_AI_ANALYSIS
-                                                    ? lastAIAnalysis
-                                                    : undefined
-                                            }
-                                        />
-                                        <p className={styles.boardSubtext}>AI 会根据你的回答排除自己的候选人物。</p>
-                                    </div>
-                                    <div className={styles.boardWrapper}>
-                                        <h2 className={styles.boardTitle}>你的候选列表</h2>
-                                        <GameBoard
-                                            characters={activeCharacters}
-                                            eliminatedChars={playerEliminatedChars}
-                                            onCardClick={(id) => {
-                                                if (gameState === GameState.PLAYER_TURN_ELIMINATING) {
-                                                    setPlayerEliminatedChars((prev) => {
-                                                        const newSet = new Set(prev);
-                                                        if (newSet.has(id)) {
-                                                            newSet.delete(id);
-                                                        } else {
-                                                            newSet.add(id);
-                                                        }
-                                                        return newSet;
-                                                    });
-                                                }
-                                            }}
-                                        />
-                                        <p className={styles.boardSubtext}>点击人物卡来排除或恢复候选。</p>
-                                    </div>
+                                <div className={styles.sidePanel}>
+                                    <h2 className={styles.sidePanelTitleAi}>{ui.layout.sidePanelAi}</h2>
+                                    <SecretCard
+                                        character={aiSecret}
+                                        text={ui.secretCard}
+                                        listJoiner={language === "zh" ? "、" : ", "}
+                                        revealed={gameState === GameState.GAME_OVER}
+                                    />
                                 </div>
                             </div>
-                            <div className={styles.chatArea}>
-                                <ChatControls
-                                    messages={messages}
-                                    gameState={gameState}
-                                    isLoading={isLoading}
-                                    onPlayerQuestion={handlePlayerQuestion}
-                                    onEndTurn={handleEndTurn}
-                                    onPlayerAnswer={handlePlayerAnswer}
-                                    onConfirmAIAnalysis={handleConfirmAIAnalysis}
-                                />
+
+                            <button
+                                className={styles.secretPanelToggle}
+                                onClick={() => setSecretPanelVisible((v) => !v)}
+                                aria-label={isSecretPanelVisible ? ui.layout.toggleHide : ui.layout.toggleShow}
+                            >
+                                {isSecretPanelVisible ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                                <span>{isSecretPanelVisible ? ui.layout.toggleHide : ui.layout.toggleShow}</span>
+                            </button>
+
+                            <div className={styles.boardArea}>
+                                <div className={styles.boardWrapper}>
+                                    <h2 className={styles.boardTitle}>{ui.layout.boardAiTitle}</h2>
+                                    <GameBoard
+                                        characters={activeCharacters}
+                                        eliminatedChars={aiEliminatedChars}
+                                        cardText={ui.characterCard}
+                                        analysis={
+                                            gameState === GameState.PLAYER_REVIEWING_AI_ANALYSIS
+                                                ? lastAIAnalysis
+                                                : undefined
+                                        }
+                                    />
+                                    <p className={styles.boardSubtext}>{ui.layout.boardAiHint}</p>
+                                </div>
+                                <div className={styles.boardWrapper}>
+                                    <h2 className={styles.boardTitle}>{ui.layout.boardPlayerTitle}</h2>
+                                    <GameBoard
+                                        characters={activeCharacters}
+                                        eliminatedChars={playerEliminatedChars}
+                                        cardText={ui.characterCard}
+                                        onCardClick={(id) => {
+                                            if (gameState === GameState.PLAYER_TURN_ELIMINATING) {
+                                                setPlayerEliminatedChars((prev) => {
+                                                    const newSet = new Set(prev);
+                                                    if (newSet.has(id)) {
+                                                        newSet.delete(id);
+                                                    } else {
+                                                        newSet.add(id);
+                                                    }
+                                                    return newSet;
+                                                });
+                                            }
+                                        }}
+                                    />
+                                    <p className={styles.boardSubtext}>{ui.layout.boardPlayerHint}</p>
+                                </div>
                             </div>
                         </div>
-                    </>
+
+                        <div className={styles.chatArea}>
+                            <ChatControls
+                                messages={messages}
+                                gameState={gameState}
+                                isLoading={isLoading}
+                                onPlayerQuestion={handlePlayerQuestion}
+                                onEndTurn={handleEndTurn}
+                                onPlayerAnswer={handlePlayerAnswer}
+                                onConfirmAIAnalysis={handleConfirmAIAnalysis}
+                                chatText={ui.chat}
+                            />
+                        </div>
+                    </div>
                 );
+            default:
+                return null;
         }
     };
 
-    return <main className={styles.appContainer}>{renderContent()}</main>;
+    return (
+        <main className={styles.app}>
+            {gameState === GameState.SETUP && (
+                <header className={styles.topBar}>
+                    <div className={styles.titleGroup}>
+                        <h1 className={styles.appTitle}>{ui.app.title}</h1>
+                        <p className={styles.subtitleText}>{ui.app.subtitle}</p>
+                    </div>
+                    <label className={styles.languageSwitcher}>
+                        <span>{ui.app.languageSelectorLabel}</span>
+                        <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
+                            {languageOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                </header>
+            )}
+            {renderContent()}
+        </main>
+    );
 }
 
 export default App;

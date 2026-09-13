@@ -1,6 +1,7 @@
 import React, { type ComponentPropsWithoutRef, useEffect, useRef, useState } from "react";
 import { SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON } from "../config";
 import { AIStatus } from "../types";
+import { text } from "../i18n";
 import styles from "./GameSetup.module.css";
 import { CheckCircleIcon, DownloadIcon, SpinnerIcon, UsersIcon } from "./icons";
 
@@ -41,6 +42,7 @@ export type GameSetupProps = {
     onDownload: () => void;
     /** Whether the player has clicked start and is waiting for model preparation. */
     hasPendingStart: boolean;
+    setupText: (typeof text)["en"]["setup"];
 };
 
 /**
@@ -58,6 +60,7 @@ function GameSetup({
     onSetReviewMode,
     onDownload,
     hasPendingStart,
+    setupText,
 }: GameSetupProps) {
     const isReady = aiStatus === AIStatus.READY;
     const isPreparingModel =
@@ -84,7 +87,7 @@ function GameSetup({
             return (
                 <div className={`${styles.statusContainer} ${styles.statusComplete}`} role="status">
                     <CheckCircleIcon />
-                    <p className={styles.subtitle}>本地 AI 模型已就绪</p>
+                    <p className={styles.subtitle}>{setupText.statusReady}</p>
                 </div>
             );
         }
@@ -94,8 +97,8 @@ function GameSetup({
                 if (!SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON) {
                     return hasPendingStart ? (
                         <div className={styles.statusContainer} role="status">
-                            <p className={styles.statusText}>正在准备本地 AI 模型...</p>
-                            <p className={styles.statusHint}>首次使用需要一些时间。</p>
+                            <p className={styles.statusText}>{setupText.statusPrepareModel}</p>
+                            <p className={styles.statusHint}>{setupText.firstUseHint}</p>
                         </div>
                     ) : null;
                 }
@@ -105,7 +108,7 @@ function GameSetup({
                         <p className={`${styles.statusText} ${styles.downloadPrompt}`}>{aiStatusMessage}</p>
                         <button onClick={onDownload} className={styles.downloadButton}>
                             <DownloadIcon />
-                            下载本地 AI 模型
+                            {setupText.statusDownloadPrompt}
                         </button>
                     </div>
                 );
@@ -115,24 +118,21 @@ function GameSetup({
                     <div className={styles.statusContainer} role="status">
                         {aiStatus === AIStatus.INITIALIZING && <SpinnerIcon className={styles.spinner} />}
                         <p className={styles.statusText}>
-                            {hasPendingStart ? "正在准备本地 AI 模型..." : aiStatusMessage}
+                            {hasPendingStart ? setupText.statusPrepareModel : aiStatusMessage}
                         </p>
-                        {hasPendingStart && <p className={styles.statusHint}>首次使用需要一些时间。</p>}
+                        {hasPendingStart && <p className={styles.statusHint}>{setupText.firstUseHint}</p>}
                         {SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON &&
                             aiStatus === AIStatus.DOWNLOADING &&
                             downloadProgress !== null && (
                                 <div className={styles.progressWrapper}>
                                     <div
                                         className={styles.progressBarContainer}
-                                        aria-label={`正在下载本地 AI 模型：${Math.floor(downloadProgress)}%`}
+                                        aria-label={`Downloading local AI model: ${Math.floor(downloadProgress)}%`}
                                         aria-valuenow={downloadProgress}
                                         aria-valuemin={0}
                                         aria-valuemax={100}
                                     >
-                                        <div
-                                            className={styles.progressBar}
-                                            style={{ width: `${downloadProgress}%` }}
-                                        ></div>
+                                        <div className={styles.progressBar} style={{ width: `${downloadProgress}%` }}></div>
                                     </div>
                                     <span className={styles.progressPercentage}>{Math.floor(downloadProgress)}%</span>
                                 </div>
@@ -150,7 +150,7 @@ function GameSetup({
                 return !hasDefaultChars ? (
                     <div className={styles.statusContainer} role="status">
                         <SpinnerIcon className={styles.spinner} />
-                        <p className={styles.subtitle}>正在加载人物资料...</p>
+                        <p className={styles.subtitle}>{setupText.statusLoadingCards}</p>
                     </div>
                 ) : null;
             default:
@@ -161,16 +161,16 @@ function GameSetup({
     return (
         <div className={styles.setupContainer}>
             <div className={styles.titleContainer}>
-                <h1 className={styles.mainTitle}>AI 猜名人：历史人物版</h1>
-                <p className={styles.subtitle}>用中文问题挑战本地 AI，猜出对方的历史人物。</p>
+                <h1 className={styles.mainTitle}>{setupText.title}</h1>
+                <p className={styles.subtitle}>{setupText.subtitle}</p>
             </div>
 
             {renderStatus()}
 
             <div className={styles.optionsGrid}>
                 <SetupOptionCard
-                    title="开始游戏"
-                    description="从中外历史人物牌库中随机抽取 5 位候选人物。"
+                    title={setupText.startButtonTitle}
+                    description={setupText.startButtonDescription}
                     icon={<UsersIcon />}
                     onClick={onStartDefault}
                     disabled={defaultGameDisabled}
@@ -178,7 +178,7 @@ function GameSetup({
             </div>
 
             <div className={styles.settingsContainer}>
-                <h3 className={styles.settingsTitle}>游戏选项</h3>
+                <h3 className={styles.settingsTitle}>{setupText.optionsTitle}</h3>
                 <label className={styles.settingLabel}>
                     <input
                         type="checkbox"
@@ -187,11 +187,9 @@ function GameSetup({
                         onChange={(e) => onSetReviewMode(e.target.checked)}
                         disabled={!isReady}
                     />
-                    显示 AI 分析过程
+                    {setupText.reviewLabel}
                 </label>
-                <p className={styles.settingDescription}>
-                    在回答 AI 的问题前查看它如何判断候选人物。这个选项会让流程多一步，但更容易检查 AI 是否推理正确。
-                </p>
+                <p className={styles.settingDescription}>{setupText.reviewDescription}</p>
             </div>
         </div>
     );

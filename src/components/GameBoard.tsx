@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { type Character, type EliminationAnalysisResult } from "../types";
+import { text } from "../i18n";
 import CharacterCard from "./CharacterCard";
 import styles from "./GameBoard.module.css";
 
@@ -12,12 +13,14 @@ export type GameBoardProps = {
     onCardClick?: (id: string) => void;
     /** The AI's analysis of the characters for the current question. */
     analysis?: EliminationAnalysisResult[];
+    /** Labels for the character card. */
+    cardText: (typeof text)["en"]["characterCard"];
 };
 
 /**
  * Renders a grid of CharacterCard components for the game board.
  */
-function GameBoard({ characters, eliminatedChars, onCardClick = () => {}, analysis }: GameBoardProps) {
+function GameBoard({ characters, eliminatedChars, onCardClick = () => {}, analysis, cardText }: GameBoardProps) {
     const analysisMap = useMemo(() => {
         if (!analysis) return null;
         const map = new Map<string, boolean>();
@@ -37,6 +40,7 @@ function GameBoard({ characters, eliminatedChars, onCardClick = () => {}, analys
                         isEliminated={eliminatedChars.has(char.character_id)}
                         onClick={onCardClick}
                         analysisResult={analysisMap ? (analysisMap.get(char.character_id) ?? null) : null}
+                        text={cardText}
                     />
                 ))}
             </div>

@@ -6,6 +6,13 @@ export type Character = {
     roles: string[];
     tags: string[];
     summary: string;
+    isChineseHistorical?: boolean;
+    name_en?: string;
+    region_en?: string;
+    era_en?: string;
+    roles_en?: string[];
+    tags_en?: string[];
+    summary_en?: string;
 };
 
 export type Message = {

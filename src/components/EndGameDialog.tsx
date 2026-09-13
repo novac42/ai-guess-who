@@ -1,5 +1,6 @@
 import { type ComponentPropsWithoutRef } from "react";
 import { type GameWinner } from "../types";
+import { text } from "../i18n";
 import styles from "./EndGameDialog.module.css";
 
 export type EndGameDialogProps = ComponentPropsWithoutRef<"div"> & {
@@ -9,16 +10,18 @@ export type EndGameDialogProps = ComponentPropsWithoutRef<"div"> & {
     reason: string;
     /** Callback function to start a new game. */
     onPlayAgain: () => void;
+    /** Labels for end-game copy. */
+    text: (typeof text)["en"]["endGame"];
 };
 
 /**
  * A modal dialog that appears at the end of the game to announce the winner.
  */
-function EndGameDialog({ winner, reason, onPlayAgain, className, ...props }: EndGameDialogProps) {
+function EndGameDialog({ winner, reason, onPlayAgain, text: endGameText, className, ...props }: EndGameDialogProps) {
     if (!winner) return null;
 
     const isPlayerWin = winner === "PLAYER";
-    const title = isPlayerWin ? "你赢了" : "AI 赢了";
+    const title = isPlayerWin ? endGameText.playerWins : endGameText.aiWins;
     const titleClass = isPlayerWin ? styles.winTitle : styles.loseTitle;
 
     return (
@@ -35,7 +38,7 @@ function EndGameDialog({ winner, reason, onPlayAgain, className, ...props }: End
                 </h2>
                 <p className={styles.reason}>{reason}</p>
                 <button onClick={onPlayAgain} className={styles.playAgainButton}>
-                    再玩一局
+                    {endGameText.playAgain}
                 </button>
             </div>
         </div>

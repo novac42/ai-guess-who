@@ -3,6 +3,7 @@
  */
 import { AIStatus } from "../../types";
 import { type LanguageModel, type LanguageModelSession } from "./types";
+import { type Language, text } from "../../i18n";
 
 let session: LanguageModelSession | null = null;
 let model: LanguageModel | null = null; // Store the model entry point for reuse
@@ -23,22 +24,24 @@ function getModelEntryPoint(): LanguageModel | null {
  */
 export async function initialize(options: {
     onStatusChange: (status: AIStatus, message?: string) => void;
+    language?: Language;
 }): Promise<void> {
-    const { onStatusChange } = options;
+    const { onStatusChange, language = "en" } = options;
+    const ui = text[language as "en" | "zh"].aiModel;
 
     // Avoid re-initializing if the model is already available.
     if (model && session) {
-        onStatusChange(AIStatus.READY, "本地 AI 模型已就绪");
+        onStatusChange(AIStatus.READY, ui.ready);
         return;
     }
 
-    onStatusChange(AIStatus.INITIALIZING, "正在初始化本地 AI 模型...");
+    onStatusChange(AIStatus.INITIALIZING, ui.initializing);
     model = getModelEntryPoint();
 
     if (!model) {
         onStatusChange(
             AIStatus.UNAVAILABLE,
-            "当前浏览器没有可用的本地 Prompt API。请使用支持该能力的 Chrome 或 Edge，并按需启用实验性 AI 功能。",
+            ui.unavailableNoApi,
         );
         return;
     }
@@ -48,19 +51,19 @@ export async function initialize(options: {
 
         if (availability === "available") {
             session = await model.create();
-            onStatusChange(AIStatus.READY, "本地 AI 模型已就绪");
+            onStatusChange(AIStatus.READY, ui.ready);
         } else if (availability === "downloadable" || availability === "downloading") {
             // "downloading" is treated like "downloadable" to show the button,
             // as the user might have refreshed the page. Clicking download should resume.
-            onStatusChange(AIStatus.DOWNLOADABLE, "开始游戏前需要先下载本地 AI 模型。");
+            onStatusChange(AIStatus.DOWNLOADABLE, ui.downloadable);
         } else {
-            onStatusChange(AIStatus.UNAVAILABLE, "当前设备不支持本地 Prompt API。");
+            onStatusChange(AIStatus.UNAVAILABLE, ui.unavailable);
         }
     } catch (e: any) {
         console.error("AI Initialization Error:", e);
         session = null; // Ensure session is null on error
         model = null;
-        onStatusChange(AIStatus.ERROR, e.message || "初始化本地 AI 时发生错误。");
+        onStatusChange(AIStatus.ERROR, e.message || ui.errorInit);
     }
 }
 
@@ -70,17 +73,19 @@ export async function initialize(options: {
  */
 export async function downloadModel(options: {
     onStatusChange: (status: AIStatus, message?: string) => void;
+    language?: Language;
     onProgress?: (progress: number) => void;
 }): Promise<void> {
-    const { onStatusChange, onProgress } = options;
+    const { onStatusChange, language = "en", onProgress } = options;
+    const ui = text[language as "en" | "zh"].aiModel;
 
     if (!model) {
-        onStatusChange(AIStatus.ERROR, "没有找到本地 AI 模型，无法开始下载。");
+        onStatusChange(AIStatus.ERROR, ui.notReadyForDownload);
         return;
     }
 
     try {
-        onStatusChange(AIStatus.DOWNLOADING, "正在下载本地 AI 模型...");
+        onStatusChange(AIStatus.DOWNLOADING, ui.downloading);
         session = await model.create({
             monitor: (e: any) => {
                 console.log("[AI_DEBUG] Monitor object received:", e);
@@ -108,18 +113,18 @@ export async function downloadModel(options: {
                             onProgress(clampedProgress);
                             onStatusChange(
                                 AIStatus.DOWNLOADING,
-                                `正在下载本地 AI 模型... ${Math.floor(clampedProgress)}%`,
+                                ui.downloadingPercent(Math.floor(clampedProgress)),
                             );
                         }
                     });
                 }
             },
         });
-        onStatusChange(AIStatus.READY, "本地 AI 模型已就绪");
+        onStatusChange(AIStatus.READY, ui.ready);
     } catch (e: any) {
         console.error("AI Download Error:", e);
         session = null;
-        onStatusChange(AIStatus.ERROR, e.message || "下载本地 AI 模型时发生错误。");
+        onStatusChange(AIStatus.ERROR, e.message || ui.errorDownload);
     }
 }
 
@@ -139,14 +144,15 @@ export async function getSession(): Promise<LanguageModelSession> {
  * Destroys any existing AI session and creates a new, clean one for a new game.
  * This ensures no conversation history is carried over between games.
  */
-export async function startNewGameSession(): Promise<void> {
+export async function startNewGameSession(language: "en" | "zh" = "en"): Promise<void> {
+    const ui = text[language].aiModel;
     // Destroy the previous session if it exists to ensure a clean slate.
     if (session) {
         session.destroy();
     }
 
     if (!model) {
-        throw new Error("AI model is not initialized. Cannot start a new session.");
+        throw new Error(ui.newSessionError);
     }
 
     // Create a new session for the new game.
@@ -154,6 +160,6 @@ export async function startNewGameSession(): Promise<void> {
         session = await model.create();
     } catch (e) {
         console.error("Failed to create new AI session:", e);
-        throw new Error("无法启动新的本地 AI 游戏会话。");
+        throw new Error(ui.newSessionError);
     }
 }

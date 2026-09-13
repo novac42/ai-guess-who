@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { SHOW_EXPLICIT_MODEL_DOWNLOAD_BUTTON } from "../config";
 import { AIStatus, GameState, type Character } from "../types";
+import { DEFAULT_LANGUAGE, type Language, text } from "../i18n";
 import { useAIActions } from "./useAIActions";
 import { useAIModel } from "./useAIModel";
 import { useGameSettings } from "./useGameSettings";
@@ -12,7 +13,7 @@ import { usePlayerActions } from "./usePlayerActions";
  * This hook acts as an orchestrator, composing smaller, specialized hooks to manage
  * different aspects of the game logic.
  */
-export const useGameLogic = () => {
+export const useGameLogic = ({ language = DEFAULT_LANGUAGE }: { language: Language }) => {
     const [hasPendingStart, setHasPendingStart] = useState(false);
     //
     // --- Sub-hooks for managing different aspects of game logic ---
@@ -28,7 +29,7 @@ export const useGameLogic = () => {
         setDownloadProgress,
         reinitializeAI,
         handleDownload,
-    } = useAIModel();
+    } = useAIModel({ language });
 
     const {
         gameState,
@@ -47,7 +48,7 @@ export const useGameLogic = () => {
         startGame: coreStartGame,
         resetGame: coreResetGame,
         shuffleArray,
-    } = useGameState();
+    } = useGameState({ language });
 
     const { isReviewModeEnabled, handleSetReviewMode } = useGameSettings();
 
@@ -64,6 +65,7 @@ export const useGameLogic = () => {
         messages,
         playerSecret,
         isReviewModeEnabled,
+        language,
         setIsLoading,
         addMessage,
         setGameState,
@@ -73,6 +75,7 @@ export const useGameLogic = () => {
 
     const { playerEliminatedChars, setPlayerEliminatedChars, handlePlayerQuestion, handleEndTurn } = usePlayerActions({
         isLoading,
+        language,
         setIsLoading,
         addMessage,
         setGameState,
@@ -93,12 +96,12 @@ export const useGameLogic = () => {
             } catch (error) {
                 console.error("Game start failed:", error);
                 setAiStatus(AIStatus.ERROR);
-                setAiStatusMessage(error instanceof Error ? error.message : "启动游戏会话失败。");
+                setAiStatusMessage(error instanceof Error ? error.message : text[language].aiModel.errorInit);
                 setGameState(GameState.SETUP);
                 throw error;
             }
         },
-        [coreStartGame, setAiRemainingChars, setAiStatus, setAiStatusMessage, setGameState],
+        [coreStartGame, language, setAiRemainingChars, setAiStatus, setAiStatusMessage, setGameState],
     );
 
     const handleStartDefault = useCallback(async () => {

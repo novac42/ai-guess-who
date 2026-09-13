@@ -1,5 +1,6 @@
 import React, { type ComponentPropsWithoutRef, useCallback } from "react";
 import { type Character } from "../types";
+import { text } from "../i18n";
 import styles from "./CharacterCard.module.css";
 import { CheckIcon, XIcon } from "./icons";
 
@@ -12,12 +13,14 @@ export type CharacterCardProps = Omit<ComponentPropsWithoutRef<"div">, "onClick"
     onClick: (id: string) => void;
     /** The result of the AI's analysis for this card (true/false). */
     analysisResult?: boolean | null;
+    /** Labels for AI match states. */
+    text: (typeof text)["en"]["characterCard"];
 };
 
 /**
  * A candidate card that keeps board scanning focused on the figure name.
  */
-function CharacterCard({ character, isEliminated, onClick, analysisResult, className, ...props }: CharacterCardProps) {
+function CharacterCard({ character, isEliminated, onClick, analysisResult, text: cardText, className, ...props }: CharacterCardProps) {
     const containerClasses = `${styles.card} ${isEliminated ? styles.isEliminated : ""} ${className || ""}`;
 
     const handleClick = useCallback(() => {
@@ -39,7 +42,7 @@ function CharacterCard({ character, isEliminated, onClick, analysisResult, class
 
         const icon = analysisResult ? <CheckIcon /> : <XIcon />;
         const overlayClass = analysisResult ? styles.analysisOverlayPositive : styles.analysisOverlayNegative;
-        const label = analysisResult ? "AI 判断这个人物符合问题特征。" : "AI 判断这个人物不符合问题特征。";
+        const label = analysisResult ? cardText.match : cardText.mismatch;
 
         return (
             <div className={`${styles.analysisOverlay} ${overlayClass}`} aria-label={label}>
@@ -53,7 +56,7 @@ function CharacterCard({ character, isEliminated, onClick, analysisResult, class
             className={containerClasses}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            aria-label={`${character.name}人物卡。${isEliminated ? "已排除。" : "候选中。"}`}
+            aria-label={`${character.name} ${isEliminated ? cardText.cardStateEliminated : cardText.cardStateActive}`}
             role="button"
             tabIndex={0}
             {...props}
@@ -62,7 +65,7 @@ function CharacterCard({ character, isEliminated, onClick, analysisResult, class
                 <h3 className={styles.cardName}>{character.name}</h3>
                 {renderAnalysisOverlay()}
             </div>
-            {isEliminated && <span className={styles.eliminatedBadge}>已排除</span>}
+            {isEliminated && <span className={styles.eliminatedBadge}>{cardText.eliminated}</span>}
         </article>
     );
 }
