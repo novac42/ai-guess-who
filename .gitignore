@@ -1,0 +1,13 @@
+.idea
+.env
+*.log
+*.bak
+*.DS_Store
+*.orig
+*Thumbs.db
+node_modules/
+/vendor/
+.pnpm-store
+.worktrees/
+dist/
+.vercel/
